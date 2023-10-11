@@ -6,7 +6,7 @@
 --Bringing together vector datasets to create a national GBS dataset
 ------------------------------------------------------------------------------------------------------------------------
 --Extract golf course
-CREATE TABLE os.os_golf_course AS SELECT * FROM sh.greenspacesite
+CREATE TABLE os_golf_course AS SELECT * FROM sh.greenspacesite
 WHERE function = 'Golf Course';
 
 CREATE INDEX sidx_garden ON os.os_mm_private_gardens USING GIST (geom);
