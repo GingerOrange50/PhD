@@ -5,9 +5,9 @@
 ------------------------------------------------------------------------------------------------------------------------
 --Bringing together vector datasets to create a national GBS dataset
 ------------------------------------------------------------------------------------------------------------------------
---Extract gardens
-CREATE TABLE os.os_mm_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
-WHERE prifunc = 'Private Garden';
+--Extract golf course
+CREATE TABLE os.os_golf_course AS SELECT * FROM os.opgrsp_essh_sh
+WHERE function = 'Golf Course';
 
 CREATE INDEX sidx_garden ON os.os_mm_private_gardens USING GIST (geom);
 VACUUM ANALYZE os.os_mm_private_gardens;
