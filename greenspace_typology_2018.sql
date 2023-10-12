@@ -9,9 +9,9 @@
 CREATE TABLE os_golf_course AS SELECT * FROM sh.greenspacesite
 WHERE function = 'Golf Course';
 
-CREATE INDEX sidx_garden ON os.os_mm_private_gardens USING GIST (geom);
-VACUUM ANALYZE os.os_mm_private_gardens;
-CLUSTER sidx_garden ON os.os_mm_private_gardens;
+CREATE INDEX golf_course ON os_golf_course USING GIST (geom);
+VACUUM ANALYZE os_golf_course;
+CLUSTER golf_course ON os_golf_course;
 ------------------------------------------------------------------------------------------------------------------------
 --All greenspace except for private gardens
 --CREATE TABLE os.greenspace_no_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
