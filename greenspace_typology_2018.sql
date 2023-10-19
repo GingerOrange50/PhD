@@ -20,7 +20,7 @@ CLUSTER golf_course ON os_golf_course;
 --Add in Singleton Park
 UPDATE os.greenspace_no_private_gardens
 SET greenspace_site_id = '8F5BF6CA-685E-2245-E053-A03BA40AA829'
-FROM bgs.singleton_park
+FROM bgs.singleton_park --Don't know what BGS is. maybe LA info. Skip to line 26
 WHERE greenspace_no_private_gardens.toid = singleton_park.toid;
 
 --Create a lookup table of distinct greenspace_site_ids
