@@ -14,8 +14,8 @@ VACUUM ANALYZE os_golf_course;
 CLUSTER golf_course ON os_golf_course;
 ------------------------------------------------------------------------------------------------------------------------
 --All greenspace except for private gardens
---CREATE TABLE os.greenspace_no_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
---WHERE prifunc NOT IN ('Private Garden')
+CREATE TABLE os.greenspace_no_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
+WHERE prifunc NOT IN ('Private Garden')
 
 --Add in Singleton Park
 UPDATE os.greenspace_no_private_gardens
