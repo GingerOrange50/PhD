@@ -28,6 +28,8 @@ CREATE TABLE os.greenspace_site_id_lookup AS SELECT distinct greenspace_site_id,
 FROM os.greenspace_no_private_gardens
 WHERE greenspace_site_id IS NOT NULL;
 
+------ missing table greenspace_with_side_id cause its related to BGS-----
+
 
 --Merge polygons based on having the same greenspace_site_id
 CREATE TABLE os.greenspace_with_site_id AS SELECT * FROM os.greenspace_no_private_gardens
