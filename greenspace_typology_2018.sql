@@ -351,7 +351,7 @@ UPDATE bgs.all_botanical_18 SET tier_3 = 'botanical_gardens';
 ------------------------------------------------------------------------------------------------------------------------
 --Marsh land
 CREATE TABLE bgs.marsh_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE descriptiveterm[1] LIKE '%Marsh%';
+WHERE LEFT (descriptiveterm,1) LIKE '%Marsh%';
 
 ALTER TABLE bgs.marsh_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.marsh_18 SET tier_3 = 'marsh';
@@ -362,22 +362,22 @@ ALTER TABLE bgs.marsh_18 ADD COLUMN toid varchar(20);
 
 --Deciduous
 CREATE TABLE bgs.deciduous_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE descriptiveterm[1] LIKE '%Nonconiferous%';
+WHERE LEFT (descriptiveterm,1) LIKE '%Nonconiferous%';
 
 ALTER TABLE bgs.deciduous_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.deciduous_18 SET tier_3 = 'deciduous'
 
 --Coniferous
 CREATE TABLE bgs.coniferous_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE descriptiveterm[1] LIKE '%Coniferous%';
+WHERE LEFT (descriptiveterm,1) LIKE '%Coniferous%';
 
 ALTER TABLE bgs.coniferous_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.coniferous_18 SET tier_3 = 'coniferous';
 ------------------------------------------------------------------------------------------------------------------------
 --Mixed
 CREATE TABLE bgs.mixed_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE descriptiveterm[1] LIKE '%Coniferous%' AND descriptiveterm[2] LIKE '%Nonconiferous%' OR
-descriptiveterm[1] LIKE '%Nonconiferous%' AND descriptiveterm[2] LIKE '%Coniferous%';
+WHERE LEFT (descriptiveterm,1) LIKE '%Coniferous%' AND LEFT (descriptiveterm,2) LIKE '%Nonconiferous%' OR
+LEFT (descriptiveterm,1) LIKE '%Nonconiferous%' AND LEFT (descriptiveterm,2) LIKE '%Coniferous%';
 
 ALTER TABLE bgs.mixed_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.mixed_18 SET tier_3 = 'mixed';
@@ -385,14 +385,14 @@ UPDATE bgs.mixed_18 SET tier_3 = 'mixed';
 
 --Moor/heath
 CREATE TABLE bgs.moor_heath_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE descriptiveterm[1] LIKE '%Scrub%' OR descriptiveterm[1] LIKE '%Heath%';
+WHERE LEFT (descriptiveterm,1) LIKE '%Scrub%' OR descriptiveterm[1] LIKE '%Heath%';
 
 ALTER TABLE bgs.moor_heath_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.moor_heath_18 SET tier_3 = 'moor_heath';
 ------------------------------------------------------------------------------------------------------------------------
 --Grassland
 CREATE TABLE bgs.grassland_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE descriptiveterm[1] LIKE '%Grassland%';
+WHERE LEFT (descriptiveterm,1) LIKE '%Grassland%';
 
 ALTER TABLE bgs.grassland_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.grassland_18 SET tier_3 = 'grassland';
