@@ -75,7 +75,7 @@ secfunc = 'Tennis Court' OR
 secfunc = 'Bowling Green' OR
 secfunc = 'Golf Course';
 
---DROP TABLE bgs.recreation_spaces_b CASCADE
+DROP MATERIALIZED VIEW bgs.recreation_spaces_b CASCADE;
 CREATE MATERIALIZED VIEW bgs.recreation_spaces_b AS SELECT * FROM os_tmp.cartographictext
 WHERE textstring LIKE '%Tennis%' OR textstring LIKE '%tennis%' OR
 textstring LIKE '%Bowling%' OR textstring LIKE '%bowling%' OR
