@@ -45,7 +45,7 @@ CLUSTER spatial_geom_idx ON os.os_greenspace_dissolved_by_site_id;
 -----------------------------------------------------------
 --missing os_mm_gs_unified_spaces
 --missing 0s_greenspace_dissolved_by_site_id
---missing os_greenspace_lookuptable_2019_08
+--missing os_greenspace_lookuptable_2019_08 (aka b. in 101 onwards)
 -----------------------------------------------------------
 
 
@@ -112,6 +112,10 @@ WHERE st_intersects = 'TRUE';
 --Add carto polygons in to recreation_spacestable
 INSERT INTO bgs.recreation_spaces (toid)
 SELECT DISTINCT fid FROM bgs.recreation_test
+
+---------------------------------
+--missing bgs.recreation_spaces cause built from greenspace_site_id
+------------------------------------
 
 UPDATE bgs.recreation_spaces
 SET geom = st_force3d(wkb_geometry)
