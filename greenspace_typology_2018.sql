@@ -42,6 +42,10 @@ VACUUM ANALYZE os.os_greenspace_dissolved_by_site_id;
 CLUSTER spatial_geom_idx ON os.os_greenspace_dissolved_by_site_id;
 
 
+--missing os_mm_gs_unified_spaces
+
+
+
 --Now join the dissolved polygon boundaries with the lookup table
 CREATE VIEW os.os_mm_gs_unified_spaces AS SELECT a.id, a.geom, a.toid, a.version, a.prifunc, a.secfunc, a.priform, a.secform, b."GREENSPACESITEID" as greenspace_site_id FROM bgs.os_greenspace_mm_wales as a, os.os_greenspace_lookuptable_2019_08 as b
 
