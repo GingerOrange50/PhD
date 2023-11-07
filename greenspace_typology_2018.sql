@@ -528,8 +528,11 @@ UNION SELECT geom, toid, tier_3 FROM bgs.all_parks) as a
 LEFT JOIN (SELECT fid, versiondate, changedate, reasonforchange FROM os_tmp.topographicarea) as b
 ON (a.toid = b.fid);
 
-------------------------------------
------------could be error bgs.green_a = bgs.green_a_18?-----
+----------------------------------
+-----------what is bgs.green_a?---------------------
+----------what is bgs.green_a_12?--------
+---------- same for green_b and green_c-------
+----------based on years, could be historical data?--------------
 ---------------------------------
 
 --Greenspace table
