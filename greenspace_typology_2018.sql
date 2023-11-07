@@ -109,6 +109,10 @@ FROM bgs.recreation_spaces_b as a, os_tmp.topographicarea as b) as c
 WHERE within = 'TRUE') as d, bgs.recreation_spaces) as foo
 WHERE st_intersects = 'TRUE';
 
+-----------------------------------------------------------------
+--- missing bgs.recreation_spaces cause its linked to greenspace_site_id
+-----------------------------------------------------------------
+
 --Add carto polygons in to recreation_spacestable
 INSERT INTO bgs.recreation_spaces (toid)
 SELECT DISTINCT fid FROM bgs.recreation_test
@@ -159,6 +163,10 @@ FROM bgs.sports_pitches_b_18 as a, os_tmp.topographicarea as b) as c
 WHERE within = 'TRUE') as d, bgs.sports_pitches_18) as foo
 WHERE st_intersects = 'TRUE';
 
+----------------------------------------------------------
+--- b. = os_greenspace_lookuptable_2019_08, which is missing
+----------------------------------------------------------------
+
 --Add carto polygons in to rec spaces table
 INSERT INTO bgs.sports_pitches_18 (toid)
 SELECT DISTINCT fid FROM bgs.sports_pitches_polygon_with_pt_18
@@ -173,8 +181,6 @@ UPDATE bgs.sports_pitches_18 SET tier_3 = 'sports pitches';
 
 --Join MM info to table based on
 CREATE MATERIALIZED VIEW bgs.all_sports_pitches_18 AS SELECT a.toid, a.geom, a.tier_3, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue as area, b.changedate, b.reasonforchange, b.descriptivegroup, b.descriptiveterm, b.make FROM bgs.sports_pitches as a LEFT JOIN (SELECT fid, featurecode, version, versiondate, theme, calculatedareavalue, changedate, reasonforchange, descriptivegroup, descriptiveterm, make, wkb_geometry FROM os_tmp.topographicarea) as b ON a.toid = b.fid
-
-
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
