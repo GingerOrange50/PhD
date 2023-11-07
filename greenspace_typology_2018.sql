@@ -385,7 +385,7 @@ UPDATE bgs.all_botanical_18 SET tier_3 = 'botanical_gardens';
 ------------------------------------------------------------------------------------------------------------------------
 --Marsh land
 CREATE TABLE bgs.marsh_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE LEFT (descriptiveterm,1) LIKE '%Marsh%';
+WHERE descriptiveterm LIKE '%Marsh%';
 
 ALTER TABLE bgs.marsh_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.marsh_18 SET tier_3 = 'marsh';
@@ -396,22 +396,24 @@ ALTER TABLE bgs.marsh_18 ADD COLUMN toid varchar(20);
 
 --Deciduous
 CREATE TABLE bgs.deciduous_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE LEFT (descriptiveterm,1) LIKE '%Nonconiferous%';
+WHERE descriptiveterm LIKE '%Nonconiferous%';
 
 ALTER TABLE bgs.deciduous_18 ADD COLUMN tier_3 character(20);
-UPDATE bgs.deciduous_18 SET tier_3 = 'deciduous'
+UPDATE bgs.deciduous_18 SET tier_3 = 'deciduous';
+
+---------------------------------------------------
 
 --Coniferous
 CREATE TABLE bgs.coniferous_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE LEFT (descriptiveterm,1) LIKE '%Coniferous%';
+WHERE descriptiveterm LIKE '%Coniferous%';
 
 ALTER TABLE bgs.coniferous_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.coniferous_18 SET tier_3 = 'coniferous';
 ------------------------------------------------------------------------------------------------------------------------
 --Mixed
 CREATE TABLE bgs.mixed_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE LEFT (descriptiveterm,1) LIKE '%Coniferous%' AND LEFT (descriptiveterm,2) LIKE '%Nonconiferous%' OR
-LEFT (descriptiveterm,1) LIKE '%Nonconiferous%' AND LEFT (descriptiveterm,2) LIKE '%Coniferous%';
+WHERE descriptiveterm LIKE '%Coniferous%' AND descriptiveterm LIKE '%Nonconiferous%' OR 
+descriptiveterm LIKE '%Nonconiferous%' AND descriptiveterm LIKE '%Coniferous%';
 
 ALTER TABLE bgs.mixed_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.mixed_18 SET tier_3 = 'mixed';
@@ -419,14 +421,14 @@ UPDATE bgs.mixed_18 SET tier_3 = 'mixed';
 
 --Moor/heath
 CREATE TABLE bgs.moor_heath_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE LEFT (descriptiveterm,1) LIKE '%Scrub%' OR descriptiveterm[1] LIKE '%Heath%';
+WHERE descriptiveterm LIKE '%Scrub%' OR descriptiveterm[1] LIKE '%Heath%';
 
 ALTER TABLE bgs.moor_heath_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.moor_heath_18 SET tier_3 = 'moor_heath';
 ------------------------------------------------------------------------------------------------------------------------
 --Grassland
 CREATE TABLE bgs.grassland_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE LEFT (descriptiveterm,1) LIKE '%Grassland%';
+WHERE descriptiveterm LIKE '%Grassland%';
 
 ALTER TABLE bgs.grassland_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.grassland_18 SET tier_3 = 'grassland';
@@ -441,6 +443,11 @@ CREATE INDEX sidx_quarry_18 ON bgs.quarry_18 USING GIST (wkb_geometry);
 CLUSTER bgs.quarry_18 using sidx_quarry_18;
 VACUUM ANALYZE bgs.quarry_18;
 
+---------------------------------------------
+------------ b.= os_greenspace_lookuptable_2019_08, which is missing
+------------ c. = contains greeenspace_site_id which is missing. c. is amalgamation with b. as well
+---------------------------------------------
+
 --Select polygons from mm topographic layer that contain point allotments from cartographic text
 CREATE TABLE bgs.all_quarry_18 AS SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
 c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, c.within FROM
@@ -453,14 +460,20 @@ ALTER TABLE bgs.all_quarry_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.all_quarry_18 SET tier_3 = 'quarry';
 ------------------------------------------------------------------------------------------------------------------------
 
+------------I took out the make ='Natural' cause in QGIS its all null or manmade make.
+-----------------------------------------------------
 --Meadow
 CREATE TABLE bgs.meadow_18 AS SELECT * FROM os_tmp.cartographictext
-WHERE textstring LIKE '%Meadow%' AND make = 'Natural';
+WHERE textstring LIKE '%Meadow%';
 
 --Spatial index botanical_gardens table
 CREATE INDEX sidx_meadow_18 ON bgs.meadow_18 USING GIST (wkb_geometry);
 VACUUM ANALYZE bgs.meadow_18;
 CLUSTER sidx_meadow_18 ON bgs.meadow_18;
+
+----------------------------------------------
+------------------- can b. be topographicarea ?---------
+-------------------------------------------------------
 
 --Select polygons from mm topographic layer that contain point allotments from cartographic text
 CREATE TABLE bgs.all_meadow_18 AS SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
@@ -500,6 +513,11 @@ UNION SELECT geom, toid, tier_3 FROM bgs.all_recreation_spaces_18) as a
 LEFT JOIN (SELECT fid, versiondate, changedate, reasonforchange FROM os_tmp.topographicarea) as b
 ON (a.toid = b.fid);
 
+------------------------
+---------bgs.all_parks needs greenspace_site_id---------
+---------------------------------
+
+
 --Stopped here 20/05/20
 CREATE VIEW bgs.green_c_18 AS
 SELECT a.geom, a.toid,a.tier_3, b.versiondate, b.changedate, b.reasonforchange FROM
@@ -509,6 +527,10 @@ UNION SELECT geom, toid, tier_3 FROM bgs.other_grounds
 UNION SELECT geom, toid, tier_3 FROM bgs.all_parks) as a
 LEFT JOIN (SELECT fid, versiondate, changedate, reasonforchange FROM os_tmp.topographicarea) as b
 ON (a.toid = b.fid);
+
+------------------------------------
+-----------could be error bgs.green_a = bgs.green_a_18?-----
+---------------------------------
 
 --Greenspace table
 CREATE TABLE bgs.final_greenspace AS SELECT geom, versiondate, changedate, reasonforchange, tier_3 FROM bgs.green_a UNION SELECT geom, versiondate, changedate, reasonforchange, tier_3 FROM bgs.green_b UNION SELECT geom, versiondate, changedate, reasonforchange, tier_3 FROM bgs.green_c;
