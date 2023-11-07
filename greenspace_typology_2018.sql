@@ -247,15 +247,20 @@ CREATE MATERIALIZED VIEW bgs.all_play_areas_18 AS SELECT a.toid, a.geom, a.tier_
 CREATE TABLE bgs.allotments_18 AS SELECT * FROM os.greenspace_with_site_id
 WHERE prifunc = 'Allotments Or Community Growing Spaces' OR
 prifunc = 'Public Park Or Garden' AND secfunc = 'Allotments Or Community Growing Spaces' OR
-prifunc = 'Amenity - Transport' AND secfunc = 'Allotments Or Community Growing Spaces'
+prifunc = 'Amenity - Transport' AND secfunc = 'Allotments Or Community Growing Spaces';
 
 CREATE MATERIALIZED VIEW bgs.allotments_b_18 AS SELECT * FROM os_tmp.cartographictext
-WHERE textstring LIKE '%Allot%' AND make = 'Natural'
+WHERE textstring LIKE '%Allot%' AND make = 'Natural';
 
 --Spatial index allotments_b table
 CREATE INDEX sidx_allotments_b_18 ON bgs.allotments_b_18 USING GIST (wkb_geometry);
 VACUUM ANALYZE bgs.allotments_b_18;
 CLUSTER sidx_allotments_b_18 ON bgs.allotments_b_18;
+
+---------------------------------------------
+------------ b.= os_greenspace_lookuptable_2019_08, which is missing
+---------------------------------------------
+
 
 --Select polygons from mm topographic layer that contain point allotments from cartographic text
 CREATE TABLE bgs.allot_polygon_with_pt AS SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
@@ -279,18 +284,22 @@ WHERE prifunc = 'Cemetery' OR
 prifunc = 'Amenity - Transport' AND secfunc = 'Cemetery' OR
 prifunc = 'School Grounds' AND secfunc = 'Cemetery' OR
 prifunc = 'Institutional Grounds' AND secfunc = 'Cemetery' OR
-prifunc = 'Public Park Or Garden' AND secfunc = 'Cemetery'
+prifunc = 'Public Park Or Garden' AND secfunc = 'Cemetery';
 
 
 --Add in '%cemetary%' from carto text
 CREATE MATERIALIZED VIEW bgs.cemetery_b_18 AS SELECT * FROM os_tmp.cartographictext
 WHERE textstring LIKE '%Burial%' AND make = 'Natural' OR
-textstring LIKE '%Graveyard%' AND make = 'Natural'
+textstring LIKE '%Graveyard%' AND make = 'Natural';
 
 --Spatial index allotments_b table
 CREATE INDEX sidx_cemetery_b_18 ON bgs.cemetery_b_18 USING GIST (wkb_geometry);
 VACUUM ANALYZE bgs.cemetery_b_18;
 CLUSTER sidx_cemetery_b_18 ON bgs.cemetery_b_18;
+
+---------------------------------------------
+------------ b.= os_greenspace_lookuptable_2019_08, which is missing
+---------------------------------------------
 
 --Select polygons from mm topographic layer that contain points from cartographic text
 --Bring together distinct polygons derived from MM and os_greenspace
@@ -330,7 +339,7 @@ prifunc = 'Amenity - Transport' AND secfunc = 'Religious Grounds' OR
 prifunc = 'Public Park Or Garden' AND secfunc = 'Religious Grounds';
 
 ALTER TABLE bgs.religious_grounds ADD COLUMN tier_3 character(20);
-UPDATE bgs.religious_grounds SET tier_3 = 'religious_grounds'
+UPDATE bgs.religious_grounds SET tier_3 = 'religious_grounds';
 ------------------------------------------------------------------------------------------------------------------------
 
 --School Grounds
@@ -359,6 +368,9 @@ CREATE INDEX sidx_botanical_gardens_18 ON bgs.botanical_gardens_18 USING GIST (w
 CLUSTER  bgs.botanical_gardens_18 using sidx_botanical_gardens_18;
 VACUUM ANALYZE bgs.botanical_gardens_18;
 
+---------------------------------------------
+------------ b.= os_greenspace_lookuptable_2019_08, which is missing
+---------------------------------------------
 
 --Select polygons from mm topographic layer that contain point allotments from cartographic text
 CREATE TABLE bgs.all_botanical_18 AS SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
