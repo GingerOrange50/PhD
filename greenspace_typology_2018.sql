@@ -185,9 +185,10 @@ CREATE MATERIALIZED VIEW bgs.all_sports_pitches_18 AS SELECT a.toid, a.geom, a.t
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --Play areas
+
 CREATE TABLE bgs.play_areas_18 AS SELECT * FROM os.greenspace_with_site_id
 WHERE prifunc = 'Play Space' OR
-secfunc = 'Play Space'
+secfunc = 'Play Space';
 
 CREATE MATERIALIZED VIEW bgs.play_areas_b_18 AS SELECT * FROM (SELECT * FROM os_tmp.cartographictext
 WHERE textstring LIKE '%Play%' OR textstring LIKE '%Playground%') as a
@@ -196,7 +197,7 @@ a.textstring NOT LIKE '%field%' AND
 a.textstring NOT LIKE '%School%' AND
 a.textstring NOT LIKE '%school%' AND
 a.textstring NOT LIKE '%Players lndustrial Estate%' AND
-a.textstring NOT LIKE '%Playas%'
+a.textstring NOT LIKE '%Playas%';
 
 --Spatial index play_areas_b table
 CREATE INDEX sidx_play_areas_b_18 ON bgs.play_areas_b_18 USING GIST (wkb_geometry);
@@ -215,6 +216,10 @@ c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, 
 FROM bgs.play_areas_b_18 as a, os_tmp.topographicarea as b) as c
 WHERE within = 'TRUE') as d, bgs.play_areas_18) as foo
 WHERE st_intersects = 'TRUE';
+
+---------------------------------------------
+------------ b.= os_greenspace_lookuptable_2019_08, which is missing
+---------------------------------------------
 
 --Add carto polygons in to rec spaces table
 INSERT INTO bgs.play_areas_18 (toid)
