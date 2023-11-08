@@ -17,6 +17,13 @@ CLUSTER golf_course ON os_golf_course;
 CREATE TABLE os.greenspace_no_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
 WHERE prifunc NOT IN ('Private Garden')
 
+
+---51.61304141982028, -3.9810142102405677- is coordinate of Singleton Park 
+---- placeholder
+CREATE TABLE bgs.singleton_park AS SELECT * FROM os.os_mm_gs_unified_spaces
+WHERE toid in ('osgb1000000333168396','osgb1000000333168432', 'osgb1000000333168827', 'osgb1000000333169567', 'osgb5000005126318034');
+
+
 --Add in Singleton Park
 UPDATE os.greenspace_no_private_gardens
 SET greenspace_site_id = '8F5BF6CA-685E-2245-E053-A03BA40AA829'
@@ -50,7 +57,9 @@ CLUSTER spatial_geom_idx ON os.os_greenspace_dissolved_by_site_id;
 
 
 --Now join the dissolved polygon boundaries with the lookup table
-CREATE VIEW os.os_mm_gs_unified_spaces AS SELECT a.id, a.geom, a.toid, a.version, a.prifunc, a.secfunc, a.priform, a.secform, b."GREENSPACESITEID" as greenspace_site_id FROM bgs.os_greenspace_mm_wales as a, os.os_greenspace_lookuptable_2019_08 as b
+CREATE VIEW os.os_mm_gs_unified_spaces AS SELECT a.id, a.geom, a.toid, a.version, a.prifunc, a.secfunc, a.priform, 
+a.secform, b."GREENSPACESITEID" as 
+greenspace_site_id FROM bgs.os_greenspace_mm_wales as a, os.os_greenspace_lookuptable_2019_08 as b
 
 CREATE VIEW os.os_mm_gs_extent_function AS SELECT a.greenspace_site_id, a.geom, b.primary_function FROM os.greenspace_with_site_id_extent as a
 LEFT JOIN os.greenspace_site_id_lookup as b
@@ -370,6 +379,7 @@ VACUUM ANALYZE bgs.botanical_gardens_18;
 
 ---------------------------------------------
 ------------ b.= os_greenspace_lookuptable_2019_08, which is missing
+-------------- lookuptable to show how dif year relate to this data year
 ---------------------------------------------
 
 --Select polygons from mm topographic layer that contain point allotments from cartographic text
