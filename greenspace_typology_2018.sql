@@ -642,4 +642,3 @@ create materialized view bgs.final_access_points_18_toid as (select id, fid as t
 create materialized view  bgs.final_access_points_18_toid_wales as (select gs.* from bgs.final_access_points_18_toid gs, ons.wales_lsoa_2011 lsoa where st_intersects(lsoa.geom, gs.geom));
 
 
-
