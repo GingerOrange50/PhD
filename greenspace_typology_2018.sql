@@ -5,18 +5,22 @@
 ------------------------------------------------------------------------------------------------------------------------
 --Bringing together vector datasets to create a national GBS dataset
 ------------------------------------------------------------------------------------------------------------------------
---Extract golf course
-CREATE TABLE os_golf_course AS SELECT * FROM sh.greenspacesite
-WHERE function = 'Golf Course';
+--Extract gardens
+CREATE TABLE os.os_mm+os_mm_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
+WHERE function = 'Private Garden';
 
-CREATE INDEX golf_course ON os_golf_course USING GIST (geom);
-VACUUM ANALYZE os_golf_course;
-CLUSTER golf_course ON os_golf_course;
+CREATE INDEX sidx_garden ON os.os_mm_private_gardens USING GIST (geom);
+VACUUM ANALYZE os.os_mm_private_gardens;
+CLUSTER sidx_garden ON os.os_mm_private_gardens;
 ------------------------------------------------------------------------------------------------------------------------
 --All greenspace except for private gardens
+
 CREATE TABLE os.greenspace_no_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
 WHERE prifunc NOT IN ('Private Garden')
 
+--------------------------------
+-----IGNORE CAUSE THIS PARK ONLY TO SHOW IN PAPER, NOT SPECIAL----------------------------
+------------------------------------------
 
 ---51.61304141982028, -3.9810142102405677- is coordinate of Singleton Park 
 ---- placeholder
