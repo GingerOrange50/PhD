@@ -6,7 +6,7 @@
 --Bringing together vector datasets to create a national GBS dataset
 ------------------------------------------------------------------------------------------------------------------------
 --Extract gardens
-CREATE TABLE os.os_mm+os_mm_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
+CREATE TABLE os.os_mm_os_mm_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
 WHERE function = 'Private Garden';
 
 CREATE INDEX sidx_garden ON os.os_mm_private_gardens USING GIST (geom);
