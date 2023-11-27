@@ -42,7 +42,7 @@ FROM os.greenspace_no_private_gardens
 WHERE greenspace_site_id IS NOT NULL;
 
 ---------- PROBLEM: no column greenspace_site_id in os.greenspace_no_private_gardens.
----------- Renamed column 'toid' to 'greenspace_site_id' in os.greenspace_no_private_gardens. 
+---------- Renamed column 'id' to 'greenspace_site_id' in os.greenspace_no_private_gardens. 
 
 
 ------------------
@@ -113,14 +113,16 @@ WHERE greenspace_no_private_gardens.toid = singleton_park.toid;
 SELECT COUNT (DISTINCT greenspace_site_id) FROM os.greenspace_with_site_id;
 SELECT COUNT (DISTINCT geom) FROM os.os_greenspace_dissolved_by_site_id;
 
-SELECT COUNT (greenspace_site_id) FROM bgs.parks_18;
-
 --Parks
 CREATE TABLE bgs.parks_18 AS SELECT a.toid, a.version, a.prifunc, a.secfunc, a.priform, a.secform, a.greenspace_site_id, geom FROM (SELECT DISTINCT greenspace_site_id, toid, version, prifunc, secfunc, priform, secform, geom FROM os.greenspace_with_site_id WHERE prifunc = 'Public Park Or Garden' AND secfunc IS NULL) as a;
 
 --parks_18 exported to qgis and geometries dissolved, imported back as all_parks
 ALTER TABLE bgs.all_parks ADD COLUMN tier_3 character(20);
 UPDATE bgs.all_parks SET tier_3 = 'park';
+
+-------- PROBLEM bgs.all_parks is an OG dataset and unknown. IGNORE for now. 
+
+SELECT COUNT (greenspace_site_id) FROM bgs.parks_18;
 ------------------------------------------------------------------------------------------------------------------------
 --Recreation Spaces
 --DROP TABLE bgs.recreation_spaces CASCADE
