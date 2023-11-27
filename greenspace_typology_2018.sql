@@ -5,6 +5,19 @@
 ------------------------------------------------------------------------------------------------------------------------
 --Bringing together vector datasets to create a national GBS dataset
 ------------------------------------------------------------------------------------------------------------------------
+
+----------------------------
+----STEP 1: make os_mm_gs_unified_spaces, aka greenspace_mm_wales aka the combined MasterMap Greenspace---
+---------------------------
+
+
+
+
+
+
+
+
+
 --Extract gardens
 CREATE TABLE os.os_mm_os_mm_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
 WHERE function = 'Private Garden';
