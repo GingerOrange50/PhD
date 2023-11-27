@@ -6,30 +6,86 @@
 --Bringing together vector datasets to create a national GBS dataset
 ------------------------------------------------------------------------------------------------------------------------
 
+-------
+---- Made changes to os_greenspace_mm_wales aka combined MasterMap Greenspace layer
+------ PROBLEM 1: Changed column in table (bgs.os_greenspace_mm_wales) from 'priFunc' to 'prinfuc' like Amy's code.
+------ PROBLEM 2: Changed column in table from 'secFunc' to 'secfunc' like Amy's code.  
+------ PROBLEM 3: Changed column in table from 'priForm' to 'priform' like Amy's code. 
+------ PROBLEM 4: Changed column in table from 'secForm' to 'secform' like Amy's code. 
+
 ----------------------------
-----STEP 1: make os_mm_gs_unified_spaces, aka greenspace_mm_wales aka the combined MasterMap Greenspace---
+----STEP 1: make os_mm_private_gardens from greenspace_mm_wales cause for now, consider gs_unified_spaces same and need this dataset to make gs_unified_spaces layer on in code. 
 ---------------------------
 
-
-
-
-
-
-
-
-
---Extract gardens
-CREATE TABLE os.os_mm_os_mm_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
-WHERE function = 'Private Garden';
+CREATE TABLE os.os_mm_private_gardens AS SELECT * FROM bgs.os_greenspace_mm_wales
+WHERE prifunc = 'Private Garden';
 
 CREATE INDEX sidx_garden ON os.os_mm_private_gardens USING GIST (geom);
 VACUUM ANALYZE os.os_mm_private_gardens;
 CLUSTER sidx_garden ON os.os_mm_private_gardens;
-------------------------------------------------------------------------------------------------------------------------
---All greenspace except for private gardens
 
-CREATE TABLE os.greenspace_no_private_gardens AS SELECT * FROM os.os_mm_gs_unified_spaces
-WHERE prifunc NOT IN ('Private Garden')
+
+---------------------------
+----STEP 2: make os.greenspace_no_private_gardens from greenspace_mm_wales instead of mm_gs_unified_spaces
+---------------------------
+
+CREATE TABLE os.greenspace_no_private_gardens AS SELECT * FROM bgs.os_greenspace_mm_wales
+WHERE prifunc NOT IN ('Private Garden');
+
+
+-------------------------
+---- STEP 3: make os.greenspace_site_id_lookup
+------------------------
+
+CREATE TABLE os.greenspace_site_id_lookup AS SELECT distinct greenspace_site_id, prifunc as primary_function
+FROM os.greenspace_no_private_gardens
+WHERE greenspace_site_id IS NOT NULL;
+
+---------- PROBLEM: no column greenspace_site_id in os.greenspace_no_private_gardens.
+---------- Renamed column 'toid' to 'greenspace_site_id' in os.greenspace_no_private_gardens. 
+
+
+------------------
+---- STEP 4: make os.greenspace_with_site_id
+-----------------
+
+CREATE TABLE os.greenspace_with_site_id AS SELECT * FROM os.greenspace_no_private_gardens
+WHERE greenspace_site_id IS NOT NULL;
+
+
+-----------------
+---- STEP 5: make VIEW os_greenspace_dissolved_by_site_id from os.greenspace_with_site_id
+-----------------
+
+CREATE MATERIALIZED VIEW os.os_greenspace_dissolved_by_site_id AS SELECT st_union(geom) as geom, greenspace_site_id FROM os.greenspace_with_site_id WHERE greenspace_site_id IS NOT NULL GROUP BY greenspace_site_id;
+
+CREATE INDEX spatial_geom_idx ON os.os_greenspace_dissolved_by_site_id USING GIST (geom);
+VACUUM ANALYZE os.os_greenspace_dissolved_by_site_id;
+CLUSTER spatial_geom_idx ON os.os_greenspace_dissolved_by_site_id;
+
+
+-----------------
+--- STEP 6: make VIEW os_gs_unified_spaces.
+--- aka greenspace_mm_wales aka the combined MasterMap Greenspace
+---Ignore lookup_table as we are looking at only 1 year for now to try. 
+--------------------
+
+CREATE VIEW os.os_mm_gs_unified_spaces AS SELECT a.id, a.geom, a.toid, a.version, a.prifunc, a.secfunc, a.priform, a.secform as greenspace_site_id FROM bgs.os_greenspace_mm_wales as a;
+
+--------PROBLEM: b."GREENSPACESITEID" comes from greenspace_lookuptable_2019_08. So took out. 
+
+
+-----------------
+----- STEP ?: IGNORING FOR NOW.  make VIEW os_mm_gs_extent_function
+-----------------
+
+CREATE VIEW os.os_mm_gs_extent_function AS SELECT a.greenspace_site_id, a.geom, b.primary_function FROM os.greenspace_with_site_id_extent as a
+LEFT JOIN os.greenspace_site_id_lookup as b
+ON a.greenspace_site_id = b.greenspace_site_id;
+
+-------- PROBLEM: OG dataset os.greenspace_with_site_id_extent is missing. os_mm_gs_extent_function is never mentioned again. 
+------- So will ignore and not create for now. 
+
 
 --------------------------------
 -----IGNORE CAUSE THIS PARK ONLY TO SHOW IN PAPER, NOT SPECIAL----------------------------
@@ -47,40 +103,8 @@ SET greenspace_site_id = '8F5BF6CA-685E-2245-E053-A03BA40AA829'
 FROM bgs.singleton_park --Don't know what BGS is. maybe LA info. Skip to line 26
 WHERE greenspace_no_private_gardens.toid = singleton_park.toid;
 
---Create a lookup table of distinct greenspace_site_ids
-CREATE TABLE os.greenspace_site_id_lookup AS SELECT distinct greenspace_site_id, prifunc as primary_function
-FROM os.greenspace_no_private_gardens
-WHERE greenspace_site_id IS NOT NULL;
+--------------------------------
 
---------------------------------------------------------------------
------- missing table greenspace_with_side_id cause its related to BGS-----
---------------------------------------------------------------------
-
---Merge polygons based on having the same greenspace_site_id
-CREATE TABLE os.greenspace_with_site_id AS SELECT * FROM os.greenspace_no_private_gardens
-WHERE greenspace_site_id IS NOT NULL;
-
-CREATE MATERIALIZED VIEW os.os_greenspace_dissolved_by_site_id AS SELECT st_union(geom) as geom, greenspace_site_id FROM os.greenspace_with_site_id WHERE greenspace_site_id IS NOT NULL GROUP BY greenspace_site_id;
-
-CREATE INDEX spatial_geom_idx ON os.os_greenspace_dissolved_by_site_id USING GIST (geom);
-VACUUM ANALYZE os.os_greenspace_dissolved_by_site_id;
-CLUSTER spatial_geom_idx ON os.os_greenspace_dissolved_by_site_id;
-
------------------------------------------------------------
--- is os_mm_gs_unified_spaces interchangeable with greenspace_with_site_id???
---missing 0s_greenspace_dissolved_by_site_id
---missing os_greenspace_lookuptable_2019_08 (aka b. in 101 onwards)
------------------------------------------------------------
-
-
---Now join the dissolved polygon boundaries with the lookup table
-CREATE VIEW os.os_mm_gs_unified_spaces AS SELECT a.id, a.geom, a.toid, a.version, a.prifunc, a.secfunc, a.priform, 
-a.secform, b."GREENSPACESITEID" as 
-greenspace_site_id FROM bgs.os_greenspace_mm_wales as a, os.os_greenspace_lookuptable_2019_08 as b
-
-CREATE VIEW os.os_mm_gs_extent_function AS SELECT a.greenspace_site_id, a.geom, b.primary_function FROM os.greenspace_with_site_id_extent as a
-LEFT JOIN os.greenspace_site_id_lookup as b
-ON a.greenspace_site_id = b.greenspace_site_id;
 
 ------------------------------------------------------------------------------------------------------------------------
 --From the dataset, we create access points for each space. Based on NESW points for each boundary.
