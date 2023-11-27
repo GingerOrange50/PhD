@@ -123,6 +123,8 @@ UPDATE bgs.all_parks SET tier_3 = 'park';
 -------- PROBLEM bgs.all_parks is an OG dataset and unknown. IGNORE for now. 
 
 SELECT COUNT (greenspace_site_id) FROM bgs.parks_18;
+
+
 ------------------------------------------------------------------------------------------------------------------------
 --Recreation Spaces
 --DROP TABLE bgs.recreation_spaces CASCADE
