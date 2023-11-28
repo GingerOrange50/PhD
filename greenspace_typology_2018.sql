@@ -29,7 +29,7 @@ CLUSTER sidx_garden ON os.os_mm_private_gardens;
 ----STEP 2: make os.greenspace_no_private_gardens from greenspace_mm_wales instead of mm_gs_unified_spaces
 ---------------------------
 
-CREATE TABLE os.greenspace_no_private_gardens AS SELECT * FROM bgs.os_greenspace_mm_wales
+CREATE TABLE os.greenspace_no_private_gardens AS SELECT *, id as greenspace_site_id FROM bgs.os_greenspace_mm_wales
 WHERE prifunc NOT IN ('Private Garden');
 
 
