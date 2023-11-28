@@ -8,9 +8,9 @@
 
 -------
 ---- Made changes to os_greenspace_mm_wales aka combined MasterMap Greenspace layer
------- PROBLEM 1: Changed column in table (bgs.os_greenspace_mm_wales) from 'priFunc' to 'prinfuc' like Amy's code.
+------ PROBLEM 1: Changed column in table (bgs.os_greenspace_mm_wales) from 'priFunc' to 'prifunc' like Amy's code.
 ALTER TABLE bgs.os_greenspace_mm_wales
-  RENAME COLUMN "priFunc" TO "prinfuc";
+  RENAME COLUMN "priFunc" TO "prifunc";
  ------ PROBLEM 2: Changed column in table (bgs.os_greenspace_mm_wales) from 'secFunc' to 'secfunc' like Amy's code. 
 ALTER TABLE bgs.os_greenspace_mm_wales
   RENAME COLUMN "secFunc" TO "secfunc";
