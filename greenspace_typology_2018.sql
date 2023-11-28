@@ -9,9 +9,17 @@
 -------
 ---- Made changes to os_greenspace_mm_wales aka combined MasterMap Greenspace layer
 ------ PROBLEM 1: Changed column in table (bgs.os_greenspace_mm_wales) from 'priFunc' to 'prinfuc' like Amy's code.
------- PROBLEM 2: Changed column in table from 'secFunc' to 'secfunc' like Amy's code.  
------- PROBLEM 3: Changed column in table from 'priForm' to 'priform' like Amy's code. 
------- PROBLEM 4: Changed column in table from 'secForm' to 'secform' like Amy's code. 
+ALTER TABLE bgs.os_greenspace_mm_wales
+  RENAME COLUMN "priFunc" TO "prinfuc";
+ ------ PROBLEM 2: Changed column in table (bgs.os_greenspace_mm_wales) from 'secFunc' to 'secfunc' like Amy's code. 
+ALTER TABLE bgs.os_greenspace_mm_wales
+  RENAME COLUMN "secFunc" TO "secfunc";
+------ PROBLEM 3: Changed column in table (bgs.os_greenspace_mm_wales) from 'priForm' to 'priform' like Amy's code. 
+ALTER TABLE bgs.os_greenspace_mm_wales
+  RENAME COLUMN "priForm" TO "priform";
+------ PROBLEM 4: Changed column in table (bgs.os_greenspace_mm_wales) from 'secForm' to 'secform' like Amy's code. 
+ALTER TABLE bgs.os_greenspace_mm_wales
+  RENAME COLUMN "secForm" TO "secform";
 
 ----------------------------
 ----STEP 1: make os_mm_private_gardens from greenspace_mm_wales cause for now, consider gs_unified_spaces same and need this dataset to make gs_unified_spaces layer on in code. 
