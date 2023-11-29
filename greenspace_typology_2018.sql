@@ -140,7 +140,15 @@ SELECT COUNT (greenspace_site_id) FROM bgs.parks_18;
 ----- make sure to fix the geometry in QGIS before importing SQL. 
 ----- -----------
 
+---------PROBLEM os_tmp.cartographictext missing column 'ogc_fid' so replicated from fid. same with 'wkb_geometry' from 'geom'
 
+--- Add a new column named wkb_geometry to cartographictext
+ALTER TABLE os_tmp.cartographictext
+ADD COLUMN wkb_geometry GEOMETRY;
+
+-- Update the new column with values from the existing geom column
+UPDATE os_tmp.cartographictext
+SET wkb_geometry = geom;
 
 ------------------------------------------------------------------------------------------------------------------------
 --Recreation Spaces
@@ -157,7 +165,7 @@ DROP MATERIALIZED VIEW bgs.recreation_spaces_b CASCADE;
 ----PROBLEM: at this point this VIEW doesn't exist yet. So can ignore this line.
 
 
-CREATE MATERIALIZED VIEW bgs.recreation_spaces_b AS SELECT *, geom as wkb_geometry FROM os_tmp.cartographictext
+CREATE MATERIALIZED VIEW bgs.recreation_spaces_b AS SELECT * FROM os_tmp.cartographictext
 WHERE textstring LIKE '%Tennis%' OR textstring LIKE '%tennis%' OR
 textstring LIKE '%Bowling%' OR textstring LIKE '%bowling%' OR
 textstring LIKE '%Picnic%';
@@ -230,12 +238,15 @@ UPDATE bgs.recreation_spaces SET tier_3 = 'recreational';
 --Join MM info to table based on
 CREATE MATERIALIZED VIEW bgs.all_recreation_spaces_18 AS SELECT a.toid, a.geom, a.tier_3, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue as area, b.changedate, b.reasonforchange, b.descriptivegroup, b.descriptiveterm, b.make FROM bgs.recreation_spaces as a LEFT JOIN (SELECT fid, featurecode, version, versiondate, theme, calculatedareavalue, changedate, reasonforchange, descriptivegroup, descriptiveterm, make, wkb_geometry FROM os_tmp.topographicarea) as b ON a.toid = b.fid
 
+
+
+
 ------------------------------------------------------------------------------------------------------------------------
 
 --Sports pitches
 CREATE TABLE bgs.sports_pitches_18 AS SELECT * FROM os.greenspace_with_site_id
 WHERE prifunc = 'Playing Field' OR
-prifunc = 'Public Park Or Garden' AND secfunc = 'Playing Field'
+prifunc = 'Public Park Or Garden' AND secfunc = 'Playing Field';
 
 
 --FROM cartographic text
@@ -252,7 +263,7 @@ CLUSTER sidx_sports_pitches_b_18 ON bgs.sports_pitches_b_18;
 --Bring together distinct polygons derived from MM and os_greenspace
 CREATE MATERIALIZED VIEW bgs.sports_pitches_polygon_with_pt_18 AS
 SELECT DISTINCT fid FROM
-(SELECT fid, st_intersects(d.wkb_geometry, geom) FROM
+(SELECT d.fid, st_intersects(d.wkb_geometry, geom) FROM
 (SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
 c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, c.within FROM
 (SELECT  b.ogc_fid, b.wkb_geometry, b.fid, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue, b.changedate,
@@ -260,6 +271,8 @@ c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, 
 FROM bgs.sports_pitches_b_18 as a, os_tmp.topographicarea as b) as c
 WHERE within = 'TRUE') as d, bgs.sports_pitches_18) as foo
 WHERE st_intersects = 'TRUE';
+
+---------PROBLEM: Not sure which 'fid' column selected in 3rd line. Chose d. to try.
 
 ----------------------------------------------------------
 --- b. = os_greenspace_lookuptable_2019_08, which is missing
