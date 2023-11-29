@@ -196,7 +196,7 @@ SET wkb_geometry = geom;
 --Bring together distinct polygons derived from MM and os_greenspace
 CREATE MATERIALIZED VIEW bgs.recreation_test AS
 SELECT * FROM
-(SELECT fid, st_intersects(d.wkb_geometry, geom) FROM
+(SELECT d.fid, st_intersects(d.wkb_geometry, geom) FROM
 (SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
 c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, c.within FROM
 (SELECT  b.ogc_fid, b.wkb_geometry, b.fid, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue, b.changedate,
@@ -205,25 +205,24 @@ FROM bgs.recreation_spaces_b as a, os_tmp.topographicarea as b) as c
 WHERE within = 'TRUE') as d, bgs.recreation_spaces) as foo
 WHERE st_intersects = 'TRUE';
 
----------PROBLEM: Not sure which 'fid' column selected in 3rd line. 
+---------PROBLEM: Not sure which 'fid' column selected in 3rd line. Chose d. to try. 
 
 
------------------------------------------------------------------
---- missing bgs.recreation_spaces cause its linked to greenspace_site_id
------------------------------------------------------------------
+--- PROBLEM: bgs.recreation_test is an OG dataset. Unknown from where. So create bgs.creation_spaces without for now. 
 
+----IGNORE FOR NOW----
 --Add carto polygons in to recreation_spacestable
 INSERT INTO bgs.recreation_spaces (toid)
 SELECT DISTINCT fid FROM bgs.recreation_test
 
----------------------------------
---missing bgs.recreation_spaces cause built from greenspace_site_id
-------------------------------------
+----------------
+----UPDATED the below code to be more clear where each column come from-----
+-------------
 
-UPDATE bgs.recreation_spaces
-SET geom = st_force3d(wkb_geometry)
-FROM os_tmp.topographicarea
-WHERE geom IS NULL AND recreation_spaces.toid = topographicarea.fid
+UPDATE bgs.recreation_spaces 
+SET geom = st_force3d(ta.wkb_geometry)
+FROM os_tmp.topographicarea AS ta
+WHERE bgs.recreation_spaces.geom IS NULL AND bgs.recreation_spaces.toid = ta.fid;
 
 ALTER TABLE bgs.recreation_spaces ADD COLUMN tier_3 character(20);
 UPDATE bgs.recreation_spaces SET tier_3 = 'recreational';
