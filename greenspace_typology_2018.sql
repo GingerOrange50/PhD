@@ -35,6 +35,7 @@ CLUSTER sidx_garden ON os.os_mm_private_gardens;
 
 ---------------------------
 ----STEP 2: make os.greenspace_no_private_gardens from greenspace_mm_wales instead of mm_gs_unified_spaces
+----- code creates a 'greenspace_site_id' column as replicate of 'id' column.
 ---------------------------
 
 CREATE TABLE os.greenspace_no_private_gardens AS SELECT *, id as greenspace_site_id FROM bgs.os_greenspace_mm_wales
@@ -50,7 +51,7 @@ FROM os.greenspace_no_private_gardens
 WHERE greenspace_site_id IS NOT NULL;
 
 ---------- PROBLEM: no column greenspace_site_id in os.greenspace_no_private_gardens.
----------- Renamed column 'id' to 'greenspace_site_id' in os.greenspace_no_private_gardens. 
+---------- Replidcated column 'id' to 'greenspace_site_id' in os.greenspace_no_private_gardens. 
 
 
 ------------------
@@ -136,6 +137,7 @@ SELECT COUNT (greenspace_site_id) FROM bgs.parks_18;
 
 -------------------------
 ----STEP 8: Import the cartographictext and topographicarea into os_tmp schema from QGIS into SQL.
+----- make sure to fix the geometry in QGIS before importing SQL. 
 ----- -----------
 
 
