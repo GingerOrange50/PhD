@@ -170,6 +170,27 @@ VACUUM ANALYZE bgs.recreation_spaces_b;
 CLUSTER sidx_recreation_spaces_b ON bgs.recreation_spaces_b;
 VACUUM ANALYZE bgs.recreation_spaces_b;
 
+
+---------PROBLEM os_tmp.topographicarea missing column 'ogc_fid' so replicated from fid. same with 'wkb_geometry' from 'geom'
+
+-- Add a new column named ogc_fid to topographicarea
+ALTER TABLE os_tmp.topographicarea
+ADD COLUMN ogc_fid CHARACTER VARYING;
+
+-- Update the new column with values from the existing fid column
+UPDATE os_tmp.topographicarea
+SET ogc_fid = fid;
+
+--- Add a new column named wkb_geometry to topographicarea
+ALTER TABLE os_tmp.topographicarea
+ADD COLUMN wkb_geometry GEOMETRY;
+
+-- Update the new column with values from the existing geom column
+UPDATE os_tmp.topographicarea
+SET wkb_geometry = geom;
+
+
+
 --DROP TABLE bgs.recreation_polygon_with_pt CASCADE
 --Select polygons from mm topographic layer that contain point recreation areas from cartographic text table
 --Bring together distinct polygons derived from MM and os_greenspace
