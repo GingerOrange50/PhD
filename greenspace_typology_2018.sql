@@ -288,13 +288,21 @@ SELECT DISTINCT fid FROM bgs.sports_pitches_polygon_with_pt_18;
 ----UPDATED the below code to be more clear where each column come from-----
 -------------
 
+
+------------PROBLEM!!!!!!!!!!!!!!! Don't know how to fix--------
 UPDATE bgs.sports_pitches_18
 SET geom = st_force3d(ta.wkb_geometry)
 FROM os_tmp.topographicarea AS ta
 WHERE bgs.sports_pitches_18.geom IS NULL AND bgs.sports_pitches_18.toid = ta.fid;
+-------------PROBLEM!!!!!!!!!!!!!!------
+
 
 ALTER TABLE bgs.sports_pitches_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.sports_pitches_18 SET tier_3 = 'sports pitches';
+
+----------------------
+------ Can't make VIEW bgs.all_sports_pitches_18 cause missing OG bgs.sports_pitches. So IGNORE for now.
+-----------------------
 
 --Join MM info to table based on
 CREATE MATERIALIZED VIEW bgs.all_sports_pitches_18 AS SELECT a.toid, a.geom, a.tier_3, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue as area, b.changedate, b.reasonforchange, b.descriptivegroup, b.descriptiveterm, b.make FROM bgs.sports_pitches as a LEFT JOIN (SELECT fid, featurecode, version, versiondate, theme, calculatedareavalue, changedate, reasonforchange, descriptivegroup, descriptiveterm, make, wkb_geometry FROM os_tmp.topographicarea) as b ON a.toid = b.fid
