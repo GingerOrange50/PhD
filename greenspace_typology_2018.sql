@@ -121,9 +121,15 @@ CREATE TABLE bgs.parks_18 AS SELECT a.toid, a.version, a.prifunc, a.secfunc, a.p
 ALTER TABLE bgs.all_parks ADD COLUMN tier_3 character(20);
 UPDATE bgs.all_parks SET tier_3 = 'park';
 
--------- PROBLEM bgs.all_parks is an OG dataset and unknown. IGNORE for now. 
+-------- PROBLEM: bgs.all_parks is an OG dataset and unknown. IGNORE for now. 
 
 SELECT COUNT (greenspace_site_id) FROM bgs.parks_18;
+
+
+-------------------------
+----STEP 8: Import the cartographictext and topographicarea into os_tmp schema from QGIS into SQL.
+----- -----------
+
 
 
 ------------------------------------------------------------------------------------------------------------------------
