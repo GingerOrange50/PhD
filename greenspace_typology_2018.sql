@@ -248,6 +248,11 @@ CREATE TABLE bgs.sports_pitches_18 AS SELECT * FROM os.greenspace_with_site_id
 WHERE prifunc = 'Playing Field' OR
 prifunc = 'Public Park Or Garden' AND secfunc = 'Playing Field';
 
+----------
+------ADDED CODE to clarify the variable type.
+----------
+ALTER TABLE bgs.sports_pitches_18
+ALTER COLUMN geom TYPE geometry(MultiPolygon, 27700);
 
 --FROM cartographic text
 CREATE MATERIALIZED VIEW bgs.sports_pitches_b_18 AS SELECT * FROM os_tmp.cartographictext
@@ -275,10 +280,6 @@ WHERE st_intersects = 'TRUE';
 ---------PROBLEM: Not sure which 'fid' column selected in 3rd line. Chose d. to try.
 
 
-----------------------------------------------------------
---- b. = os_greenspace_lookuptable_2019_08, which is missing
-----------------------------------------------------------------
-
 --Add carto polygons in to rec spaces table
 INSERT INTO bgs.sports_pitches_18 (toid)
 SELECT DISTINCT fid FROM bgs.sports_pitches_polygon_with_pt_18;
@@ -286,7 +287,6 @@ SELECT DISTINCT fid FROM bgs.sports_pitches_polygon_with_pt_18;
 ----------------
 ----UPDATED the below code to be more clear where each column come from-----
 -------------
-
 
 UPDATE bgs.sports_pitches_18
 SET geom = st_force3d(ta.wkb_geometry)
