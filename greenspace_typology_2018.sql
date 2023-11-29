@@ -144,6 +144,9 @@ secfunc = 'Bowling Green' OR
 secfunc = 'Golf Course';
 
 DROP MATERIALIZED VIEW bgs.recreation_spaces_b CASCADE;
+----PROBLEM: at this point this VIEW doesn't exist yet. So can ignore this line.
+
+
 CREATE MATERIALIZED VIEW bgs.recreation_spaces_b AS SELECT * FROM os_tmp.cartographictext
 WHERE textstring LIKE '%Tennis%' OR textstring LIKE '%tennis%' OR
 textstring LIKE '%Bowling%' OR textstring LIKE '%bowling%' OR
