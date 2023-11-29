@@ -274,18 +274,24 @@ WHERE st_intersects = 'TRUE';
 
 ---------PROBLEM: Not sure which 'fid' column selected in 3rd line. Chose d. to try.
 
+
 ----------------------------------------------------------
 --- b. = os_greenspace_lookuptable_2019_08, which is missing
 ----------------------------------------------------------------
 
 --Add carto polygons in to rec spaces table
 INSERT INTO bgs.sports_pitches_18 (toid)
-SELECT DISTINCT fid FROM bgs.sports_pitches_polygon_with_pt_18
+SELECT DISTINCT fid FROM bgs.sports_pitches_polygon_with_pt_18;
+
+----------------
+----UPDATED the below code to be more clear where each column come from-----
+-------------
+
 
 UPDATE bgs.sports_pitches_18
-SET geom = st_force3d(wkb_geometry)
-FROM os_tmp.topographicarea
-WHERE geom IS NULL AND sports_pitches_18.toid = topographicarea.fid
+SET geom = st_force3d(ta.wkb_geometry)
+FROM os_tmp.topographicarea AS ta
+WHERE bgs.sports_pitches_18.geom IS NULL AND bgs.sports_pitches_18.toid = ta.fid;
 
 ALTER TABLE bgs.sports_pitches_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.sports_pitches_18 SET tier_3 = 'sports pitches';
