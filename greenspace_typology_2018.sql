@@ -333,7 +333,7 @@ CLUSTER sidx_play_areas_b_18 ON bgs.play_areas_b_18;
 --Bring together distinct polygons derived from MM and os_greenspace
 CREATE MATERIALIZED VIEW bgs.play_areas_polygon_with_pt_18 AS
 SELECT DISTINCT fid FROM
-(SELECT fid, st_intersects(d.wkb_geometry, geom) FROM
+(SELECT d.fid, st_intersects(d.wkb_geometry, geom) FROM
 (SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
 c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, c.within FROM
 (SELECT  b.ogc_fid, b.wkb_geometry, b.fid, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue, b.changedate,
@@ -342,18 +342,21 @@ FROM bgs.play_areas_b_18 as a, os_tmp.topographicarea as b) as c
 WHERE within = 'TRUE') as d, bgs.play_areas_18) as foo
 WHERE st_intersects = 'TRUE';
 
----------------------------------------------
------------- b.= os_greenspace_lookuptable_2019_08, which is missing
----------------------------------------------
+---------PROBLEM: Not sure which 'fid' column selected in 3rd line. Chose d. to try.
+
 
 --Add carto polygons in to rec spaces table
 INSERT INTO bgs.play_areas_18 (toid)
-SELECT DISTINCT fid FROM bgs.play_areas_polygon_with_pt_18
+SELECT DISTINCT fid FROM bgs.play_areas_polygon_with_pt_18;
 
+
+------------PROBLEM!!!!!!!!!!!!!!! Don't know how to fix--------
 UPDATE bgs.play_areas_18
 SET geom = st_force3d(wkb_geometry)
 FROM os_tmp.topographicarea
-WHERE geom IS NULL AND play_areas_18.toid = topographicarea.fid
+WHERE geom IS NULL AND play_areas_18.toid = topographicarea.fid;
+----------PROBLEM!!!!!!!!!!!!!!!---------------
+
 
 ALTER TABLE bgs.play_areas_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.play_areas_18 SET tier_3 = 'play_areas';
