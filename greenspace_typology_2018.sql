@@ -205,6 +205,9 @@ FROM bgs.recreation_spaces_b as a, os_tmp.topographicarea as b) as c
 WHERE within = 'TRUE') as d, bgs.recreation_spaces) as foo
 WHERE st_intersects = 'TRUE';
 
+---------PROBLEM: Not sure which 'fid' column selected in 3rd line. 
+
+
 -----------------------------------------------------------------
 --- missing bgs.recreation_spaces cause its linked to greenspace_site_id
 -----------------------------------------------------------------
