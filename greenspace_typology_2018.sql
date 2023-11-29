@@ -157,11 +157,12 @@ DROP MATERIALIZED VIEW bgs.recreation_spaces_b CASCADE;
 ----PROBLEM: at this point this VIEW doesn't exist yet. So can ignore this line.
 
 
-CREATE MATERIALIZED VIEW bgs.recreation_spaces_b AS SELECT * FROM os_tmp.cartographictext
+CREATE MATERIALIZED VIEW bgs.recreation_spaces_b AS SELECT *, geom as wkb_geometry FROM os_tmp.cartographictext
 WHERE textstring LIKE '%Tennis%' OR textstring LIKE '%tennis%' OR
 textstring LIKE '%Bowling%' OR textstring LIKE '%bowling%' OR
 textstring LIKE '%Picnic%';
 
+----- PROBLEM: Replicated 'geom' column to make 'wkb_geometry' for VIEW.  
 
 --Spatial index recreation_spaces_b table
 CREATE INDEX sidx_recreation_spaces_b ON bgs.recreation_spaces_b USING GIST (wkb_geometry);
