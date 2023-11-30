@@ -307,7 +307,7 @@ WHERE bgs.sports_pitches_18.geom IS NULL AND bgs.sports_pitches_18.toid = ta.fid
 ALTER TABLE bgs.sports_pitches_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.sports_pitches_18 SET tier_3 = 'sports pitches';
 
-
+--------- TO CREATE OG dataset bgs.sports_pitches to make materialized view bgs.all_sports_pitches_18
 CREATE TABLE bgs.sports_pitches AS SELECT toid, tier_3, st_union(geom) AS geom 
 FROM bgs.sports_pitches_18 GROUP BY toid, tier_3;
 
