@@ -397,22 +397,25 @@ CREATE INDEX sidx_allotments_b_18 ON bgs.allotments_b_18 USING GIST (wkb_geometr
 VACUUM ANALYZE bgs.allotments_b_18;
 CLUSTER sidx_allotments_b_18 ON bgs.allotments_b_18;
 
----------------------------------------------
------------- b.= os_greenspace_lookuptable_2019_08, which is missing
----------------------------------------------
-
+---------
+------PROBLEM topographicarea does not have column 'style_code' or 'style_description'
+---------
 
 --Select polygons from mm topographic layer that contain point allotments from cartographic text
 CREATE TABLE bgs.allot_polygon_with_pt AS SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
 c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, c.style_code, c.style_description, c.within FROM
 (SELECT  b.ogc_fid, b.wkb_geometry, b.fid, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue, b.changedate,
  b.reasonforchange, b.descriptivegroup, b.descriptiveterm, b.make, b.style_code, b.style_description, ST_Within(a.wkb_geometry, b.wkb_geometry) as within
-FROM bgs.allotments_b as a, osmm_topo.topographicarea as b) as c
-WHERE within = 'TRUE'
+FROM bgs.allotments_b_18 as a, os_tmp.topographicarea as b) as c
+WHERE within = 'TRUE';
 
 --Select polygons from bgs.allot_polygon_with_pt that are not recorded in allotments table. Did this in QGIS using select by location.
 --Exported polygons that did not intersect with OS GS allotment polygons n=345 table name = allot_cartotext_polygon
 --Then 'Unioned' the two polygon dataset in QGIS allot_cartotext_polygon and allotments to create a table with 3133 polygons
+
+---------
+-----PROBLEM: where does bgs.all_allotments come from?
+---------
 
 ALTER TABLE bgs.all_allotments ADD COLUMN tier_3 character(20);
 UPDATE bgs.all_allotments SET tier_3 = 'allotments'
