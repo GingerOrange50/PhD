@@ -126,11 +126,16 @@ SELECT COUNT (DISTINCT geom) FROM os.os_greenspace_dissolved_by_site_id;
 --Parks
 CREATE TABLE bgs.parks_18 AS SELECT a.toid, a.version, a.prifunc, a.secfunc, a.priform, a.secform, a.greenspace_site_id, geom FROM (SELECT DISTINCT greenspace_site_id, toid, version, prifunc, secfunc, priform, secform, geom FROM os.greenspace_with_site_id WHERE prifunc = 'Public Park Or Garden' AND secfunc IS NULL) as a;
 
+
 --parks_18 exported to qgis and geometries dissolved, imported back as all_parks
+
+
+------ NEED to be revised if geom dissolved needs a grouping variable. 
+CREATE TABLE bgs.all_parks AS SELECT st_union(geom) AS geom
+FROM bgs.parks_18;
+
 ALTER TABLE bgs.all_parks ADD COLUMN tier_3 character(20);
 UPDATE bgs.all_parks SET tier_3 = 'park';
-
--------- PROBLEM: bgs.all_parks is an OG dataset and unknown. IGNORE for now. 
 
 SELECT COUNT (greenspace_site_id) FROM bgs.parks_18;
 
@@ -248,11 +253,11 @@ CREATE TABLE bgs.sports_pitches_18 AS SELECT * FROM os.greenspace_with_site_id
 WHERE prifunc = 'Playing Field' OR
 prifunc = 'Public Park Or Garden' AND secfunc = 'Playing Field';
 
-----------
-------ADDED CODE to clarify the variable type.
-----------
+
+------CHANGED to make variable type clearer. 
 ALTER TABLE bgs.sports_pitches_18
-ALTER COLUMN geom TYPE geometry(MultiPolygon, 27700);
+ALTER COLUMN geom TYPE geometry(MultiLineStringZ)
+USING st_force3d(geom);
 
 --FROM cartographic text
 CREATE MATERIALIZED VIEW bgs.sports_pitches_b_18 AS SELECT * FROM os_tmp.cartographictext
@@ -288,21 +293,24 @@ SELECT DISTINCT fid FROM bgs.sports_pitches_polygon_with_pt_18;
 ----UPDATED the below code to be more clear where each column come from-----
 -------------
 
-
-------------PROBLEM!!!!!!!!!!!!!!! Don't know how to fix--------
 UPDATE bgs.sports_pitches_18
 SET geom = st_force3d(ta.wkb_geometry)
 FROM os_tmp.topographicarea AS ta
 WHERE bgs.sports_pitches_18.geom IS NULL AND bgs.sports_pitches_18.toid = ta.fid;
--------------PROBLEM!!!!!!!!!!!!!!------
 
+----------------
+------------------
+---- NEED TO delete double counted rows.
+-----------------
+----------------
 
 ALTER TABLE bgs.sports_pitches_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.sports_pitches_18 SET tier_3 = 'sports pitches';
 
-----------------------
------- Can't make VIEW bgs.all_sports_pitches_18 cause missing OG bgs.sports_pitches. So IGNORE for now.
------------------------
+
+CREATE TABLE bgs.sports_pitches AS SELECT toid, tier_3, st_union(geom) AS geom 
+FROM bgs.sports_pitches_18 GROUP BY toid, tier_3;
+
 
 --Join MM info to table based on
 CREATE MATERIALIZED VIEW bgs.all_sports_pitches_18 AS SELECT a.toid, a.geom, a.tier_3, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue as area, b.changedate, b.reasonforchange, b.descriptivegroup, b.descriptiveterm, b.make FROM bgs.sports_pitches as a LEFT JOIN (SELECT fid, featurecode, version, versiondate, theme, calculatedareavalue, changedate, reasonforchange, descriptivegroup, descriptiveterm, make, wkb_geometry FROM os_tmp.topographicarea) as b ON a.toid = b.fid
@@ -314,6 +322,12 @@ CREATE MATERIALIZED VIEW bgs.all_sports_pitches_18 AS SELECT a.toid, a.geom, a.t
 CREATE TABLE bgs.play_areas_18 AS SELECT * FROM os.greenspace_with_site_id
 WHERE prifunc = 'Play Space' OR
 secfunc = 'Play Space';
+
+------CHANGED to make variable type clearer. 
+ALTER TABLE bgs.play_areas_18
+ALTER COLUMN geom TYPE geometry(MultiPolygonZ)
+USING st_force3d(geom);
+
 
 CREATE MATERIALIZED VIEW bgs.play_areas_b_18 AS SELECT * FROM (SELECT * FROM os_tmp.cartographictext
 WHERE textstring LIKE '%Play%' OR textstring LIKE '%Playground%') as a
@@ -350,12 +364,10 @@ INSERT INTO bgs.play_areas_18 (toid)
 SELECT DISTINCT fid FROM bgs.play_areas_polygon_with_pt_18;
 
 
-------------PROBLEM!!!!!!!!!!!!!!! Don't know how to fix--------
 UPDATE bgs.play_areas_18
-SET geom = st_force3d(wkb_geometry)
-FROM os_tmp.topographicarea
-WHERE geom IS NULL AND play_areas_18.toid = topographicarea.fid;
-----------PROBLEM!!!!!!!!!!!!!!!---------------
+SET geom = st_force3d(ta.wkb_geometry)
+FROM os_tmp.topographicarea AS ta
+WHERE bgs.play_areas_18.geom IS NULL AND bgs.play_areas_18.toid = ta.fid;
 
 
 ALTER TABLE bgs.play_areas_18 ADD COLUMN tier_3 character(20);
