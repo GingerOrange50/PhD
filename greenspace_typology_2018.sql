@@ -401,15 +401,15 @@ CLUSTER sidx_allotments_b_18 ON bgs.allotments_b_18;
 ---------
 ------PROBLEM topographicarea and allotments_b_18 does not have column 'style_code' or 'style_description'
 ----- Looks like no existing OG datasets don't have 'style_code' or 'style_description'
------- But looks like there is a 'physicallevel' and 'physicalpresence' columns to replace for now in code. 
+------ So DELETE for now. 
 ----- Not seen in other same-ish code.
 
 
 --Select polygons from mm topographic layer that contain point allotments from cartographic text
 CREATE TABLE bgs.allot_polygon_with_pt AS SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
-c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, c.physicallevel, c.physicalpresence, c.within FROM
+c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, c.within FROM
 (SELECT  b.ogc_fid, b.wkb_geometry, b.fid, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue, b.changedate,
- b.reasonforchange, b.descriptivegroup, b.descriptiveterm, b.make, b.physicallevel, b.physicalpresence, ST_Within(a.wkb_geometry, b.wkb_geometry) as within
+ b.reasonforchange, b.descriptivegroup, b.descriptiveterm, b.make, ST_Within(a.wkb_geometry, b.wkb_geometry) as within
 FROM bgs.allotments_b_18 as a, os_tmp.topographicarea as b) as c
 WHERE within = 'TRUE';
 
@@ -438,6 +438,11 @@ prifunc = 'School Grounds' AND secfunc = 'Cemetery' OR
 prifunc = 'Institutional Grounds' AND secfunc = 'Cemetery' OR
 prifunc = 'Public Park Or Garden' AND secfunc = 'Cemetery';
 
+------CHANGED to make variable type clearer. 
+ALTER TABLE bgs.cemeteries_18
+ALTER COLUMN geom TYPE geometry(MultiPolygonZ)
+USING st_force3d(geom);
+
 
 --Add in '%cemetary%' from carto text
 CREATE MATERIALIZED VIEW bgs.cemetery_b_18 AS SELECT * FROM os_tmp.cartographictext
@@ -453,15 +458,14 @@ CREATE INDEX sidx_cemetery_b_18 ON bgs.cemetery_b_18 USING GIST (wkb_geometry);
 VACUUM ANALYZE bgs.cemetery_b_18;
 CLUSTER sidx_cemetery_b_18 ON bgs.cemetery_b_18;
 
----------------------------------------------
------------- b.= os_greenspace_lookuptable_2019_08, which is missing
----------------------------------------------
+
+---------PROBLEM: Not sure which 'fid' column selected in 3rd line. Chose d. to try.
 
 --Select polygons from mm topographic layer that contain points from cartographic text
 --Bring together distinct polygons derived from MM and os_greenspace
 CREATE MATERIALIZED VIEW bgs.cemetery_polygon_with_pt_18 AS
 SELECT DISTINCT fid FROM
-(SELECT fid, st_intersects(d.wkb_geometry, geom) FROM
+(SELECT d.fid, st_intersects(d.wkb_geometry, geom) FROM
 (SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
 c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, c.within FROM
 (SELECT  b.ogc_fid, b.wkb_geometry, b.fid, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue, b.changedate,
@@ -472,12 +476,12 @@ WHERE st_intersects = 'TRUE';
 
 --Add carto polygons in to rec spaces table
 INSERT INTO bgs.cemeteries_18 (toid)
-SELECT DISTINCT fid FROM bgs.cemetery_polygon_with_pt_18
+SELECT DISTINCT fid FROM bgs.cemetery_polygon_with_pt_18;
 
 UPDATE bgs.cemeteries_18
-SET geom = st_force3d(wkb_geometry)
-FROM os_tmp.topographicarea
-WHERE geom IS NULL AND cemeteries_18.toid = topographicarea.fid
+SET geom = st_force3d(ta.wkb_geometry)
+FROM os_tmp.topographicarea AS ta
+WHERE bgs.cemeteries_18.geom IS NULL AND bgs.cemeteries_18.toid = ta.fid;
 
 ALTER TABLE bgs.cemeteries_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.cemeteries_18 SET tier_3 = 'play_areas';
@@ -517,7 +521,7 @@ UPDATE bgs.other_grounds SET tier_3 = 'other_grounds';
 --Botanical Gardens
 CREATE MATERIALIZED VIEW bgs.botanical_gardens_18 AS SELECT * FROM os_tmp.cartographictext
 WHERE textstring LIKE '%Botanic%'
-OR textstring LIKE '%Nursery%' AND theme = '{Land}';
+OR textstring LIKE '%Nursery%' AND theme = 'Land';
 
 --Spatial index botanical_gardens table
 CREATE INDEX sidx_botanical_gardens_18 ON bgs.botanical_gardens_18 USING GIST (wkb_geometry);
@@ -525,7 +529,6 @@ CLUSTER  bgs.botanical_gardens_18 using sidx_botanical_gardens_18;
 VACUUM ANALYZE bgs.botanical_gardens_18;
 
 ---------------------------------------------
------------- b.= os_greenspace_lookuptable_2019_08, which is missing
 -------------- lookuptable to show how dif year relate to this data year
 ---------------------------------------------
 
@@ -534,7 +537,7 @@ CREATE TABLE bgs.all_botanical_18 AS SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.
 c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, c.within FROM
 (SELECT  b.ogc_fid, b.wkb_geometry, b.fid, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue, b.changedate,
  b.reasonforchange, b.descriptivegroup, b.descriptiveterm, b.make, ST_Within(a.wkb_geometry, b.wkb_geometry) as within
-FROM bgs.botanical_gardens as a, os_tmp.topographicarea as b) as c
+FROM bgs.botanical_gardens_18 as a, os_tmp.topographicarea as b) as c
 WHERE within = 'TRUE';
 
 ALTER TABLE bgs.all_botanical_18 ADD COLUMN tier_3 character(20);
