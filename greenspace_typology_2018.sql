@@ -581,7 +581,7 @@ UPDATE bgs.mixed_18 SET tier_3 = 'mixed';
 
 --Moor/heath
 CREATE TABLE bgs.moor_heath_18 AS SELECT * FROM os_tmp.topographicarea
-WHERE descriptiveterm LIKE '%Scrub%' OR descriptiveterm[1] LIKE '%Heath%';
+WHERE descriptiveterm LIKE '%Scrub%' OR descriptiveterm LIKE '%Heath%';
 
 ALTER TABLE bgs.moor_heath_18 ADD COLUMN tier_3 character(20);
 UPDATE bgs.moor_heath_18 SET tier_3 = 'moor_heath';
@@ -604,7 +604,6 @@ CLUSTER bgs.quarry_18 using sidx_quarry_18;
 VACUUM ANALYZE bgs.quarry_18;
 
 ---------------------------------------------
------------- b.= os_greenspace_lookuptable_2019_08, which is missing
 ------------ c. = contains greeenspace_site_id which is missing. c. is amalgamation with b. as well
 ---------------------------------------------
 
