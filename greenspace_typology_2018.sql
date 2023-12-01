@@ -301,6 +301,7 @@ WHERE bgs.sports_pitches_18.geom IS NULL AND bgs.sports_pitches_18.toid = ta.fid
 ----------------
 ------------------
 ---- NEED TO delete double counted rows.
+---- HAVE NOT SORTED!!
 -----------------
 ----------------
 
@@ -398,14 +399,17 @@ VACUUM ANALYZE bgs.allotments_b_18;
 CLUSTER sidx_allotments_b_18 ON bgs.allotments_b_18;
 
 ---------
-------PROBLEM topographicarea does not have column 'style_code' or 'style_description'
----------
+------PROBLEM topographicarea and allotments_b_18 does not have column 'style_code' or 'style_description'
+----- Looks like no existing OG datasets don't have 'style_code' or 'style_description'
+------ But looks like there is a 'physicallevel' and 'physicalpresence' columns to replace for now in code. 
+----- Not seen in other same-ish code.
+
 
 --Select polygons from mm topographic layer that contain point allotments from cartographic text
 CREATE TABLE bgs.allot_polygon_with_pt AS SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
-c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, c.style_code, c.style_description, c.within FROM
+c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, c.physicallevel, c.physicalpresence, c.within FROM
 (SELECT  b.ogc_fid, b.wkb_geometry, b.fid, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue, b.changedate,
- b.reasonforchange, b.descriptivegroup, b.descriptiveterm, b.make, b.style_code, b.style_description, ST_Within(a.wkb_geometry, b.wkb_geometry) as within
+ b.reasonforchange, b.descriptivegroup, b.descriptiveterm, b.make, b.physicallevel, b.physicalpresence, ST_Within(a.wkb_geometry, b.wkb_geometry) as within
 FROM bgs.allotments_b_18 as a, os_tmp.topographicarea as b) as c
 WHERE within = 'TRUE';
 
@@ -417,8 +421,13 @@ WHERE within = 'TRUE';
 -----PROBLEM: where does bgs.all_allotments come from?
 ---------
 
+--------- TO CREATE OG dataset bgs.all_allotments to make materialized view bgs.allotments_18
+CREATE TABLE bgs.all_allotments AS SELECT toid, st_union(geom) AS geom 
+FROM bgs.allotments_18 GROUP BY toid;
+
+
 ALTER TABLE bgs.all_allotments ADD COLUMN tier_3 character(20);
-UPDATE bgs.all_allotments SET tier_3 = 'allotments'
+UPDATE bgs.all_allotments SET tier_3 = 'allotments';
 
 ------------------------------------------------------------------------------------------------------------------------
 --Cemeteries
