@@ -442,7 +442,11 @@ prifunc = 'Public Park Or Garden' AND secfunc = 'Cemetery';
 --Add in '%cemetary%' from carto text
 CREATE MATERIALIZED VIEW bgs.cemetery_b_18 AS SELECT * FROM os_tmp.cartographictext
 WHERE textstring LIKE '%Burial%' AND make = 'Natural' OR
-textstring LIKE '%Graveyard%' AND make = 'Natural';
+textstring LIKE '%Graveyard%' AND make = 'Natural' OR
+textstring LIKE '%Cemetery' AND make = 'Natural' OR
+textstring LIKE '%Cemetery' AND make = 'Manmade' OR
+textstring LIKE '%Cemetery' AND make = 'Multiple' OR
+textstring LIKE '%Cemetery' AND make = 'Multipl';
 
 --Spatial index allotments_b table
 CREATE INDEX sidx_cemetery_b_18 ON bgs.cemetery_b_18 USING GIST (wkb_geometry);
