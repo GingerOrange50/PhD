@@ -131,8 +131,8 @@ CREATE TABLE bgs.parks_18 AS SELECT a.toid, a.version, a.prifunc, a.secfunc, a.p
 
 
 ------ NEED to be revised if geom dissolved needs a grouping variable. 
-CREATE TABLE bgs.all_parks AS SELECT st_union(geom) AS geom
-FROM bgs.parks_18;
+CREATE TABLE bgs.all_parks AS SELECT toid, st_union(geom) AS geom
+FROM bgs.parks_18 GROUP BY toid;
 
 ALTER TABLE bgs.all_parks ADD COLUMN tier_3 character(20);
 UPDATE bgs.all_parks SET tier_3 = 'park';
@@ -603,9 +603,6 @@ CREATE INDEX sidx_quarry_18 ON bgs.quarry_18 USING GIST (wkb_geometry);
 CLUSTER bgs.quarry_18 using sidx_quarry_18;
 VACUUM ANALYZE bgs.quarry_18;
 
----------------------------------------------
------------- c. = contains greeenspace_site_id which is missing. c. is amalgamation with b. as well
----------------------------------------------
 
 --Select polygons from mm topographic layer that contain point allotments from cartographic text
 CREATE TABLE bgs.all_quarry_18 AS SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
@@ -630,9 +627,6 @@ CREATE INDEX sidx_meadow_18 ON bgs.meadow_18 USING GIST (wkb_geometry);
 VACUUM ANALYZE bgs.meadow_18;
 CLUSTER sidx_meadow_18 ON bgs.meadow_18;
 
-----------------------------------------------
-------------------- can b. be topographicarea ?---------
--------------------------------------------------------
 
 --Select polygons from mm topographic layer that contain point allotments from cartographic text
 CREATE TABLE bgs.all_meadow_18 AS SELECT c.ogc_fid, c.wkb_geometry, c.fid, c.featurecode, c.version, c.versiondate, c.theme, c.calculatedareavalue,
@@ -640,10 +634,10 @@ c.changedate, c.reasonforchange, c.descriptivegroup, c.descriptiveterm, c.make, 
 (SELECT  b.ogc_fid, b.wkb_geometry, b.fid, b.featurecode, b.version, b.versiondate, b.theme, b.calculatedareavalue, b.changedate,
  b.reasonforchange, b.descriptivegroup, b.descriptiveterm, b.make, ST_Within(a.wkb_geometry, b.wkb_geometry) as within
 FROM bgs.meadow_18 as a, os_tmp.topographicarea as b) as c
-WHERE within = 'TRUE'
+WHERE within = 'TRUE';
 
 ALTER TABLE bgs.all_meadow_18 ADD COLUMN tier_3 character(20);
-UPDATE bgs.all_meadow_18 SET tier_3 = 'meadow'
+UPDATE bgs.all_meadow_18 SET tier_3 = 'meadow';
 
 ------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
@@ -671,10 +665,6 @@ UNION SELECT geom, toid, tier_3 FROM bgs.marsh_18
 UNION SELECT geom, toid, tier_3 FROM bgs.all_recreation_spaces_18) as a
 LEFT JOIN (SELECT fid, versiondate, changedate, reasonforchange FROM os_tmp.topographicarea) as b
 ON (a.toid = b.fid);
-
-------------------------
----------bgs.all_parks needs greenspace_site_id---------
----------------------------------
 
 
 --Stopped here 20/05/20
