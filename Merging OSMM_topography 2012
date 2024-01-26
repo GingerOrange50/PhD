@@ -1,8 +1,3 @@
-# Load necessary libraries
-library(sf)
-library(rgdal)
-library(terra)
-
 # Function to merge specific GDB files
 merge_specific_gdb_files <- function(source_dir, output_dir, output_file) {
   # List specific GDB files
@@ -15,15 +10,16 @@ merge_specific_gdb_files <- function(source_dir, output_dir, output_file) {
   # Loop through each specific GDB file
   for (gdb_file in gdb_files) {
     # List feature classes in the GDB
-    feature_classes <- ogrListLayers(gdb_file)
+    feature_classes <- sf::st_layers(gdb_file)
+    # We are only interested in a subset of those features
+    feature_classes <- c("topographicarea", "cartographictext")
     
     # Loop through each feature class and read it into an sf object
     for (feature_class in feature_classes) {
-      feature_path <- file.path(gdb_file, feature_class)
-      feature_sf <- st_read(dsn = feature_path)
+      feature_sf <- sf::st_read(dsn = gdb_file, layer = feature_class)
       
       # Check if merged_sf is NULL (first iteration) or if feature_sf has a geometry column
-      if (is.null(merged_sf) || !is.null(st_geometry(feature_sf))) {
+      if (is.null(merged_sf) || !is.null(sf::st_geometry(feature_sf))) {
         merged_sf <- rbind(merged_sf, feature_sf)
       }
     }
@@ -33,15 +29,14 @@ merge_specific_gdb_files <- function(source_dir, output_dir, output_file) {
   if (!is.null(merged_sf)) {
     # Write the merged sf object to a shapefile
     output_path <- file.path(output_dir, paste0(output_file, ".shp"))
-    st_write(merged_sf, dsn = output_path)
+    sf::st_write(merged_sf, dsn = output_path)
     
-    cat("Specific GDB files merged successfully and saved to", output_path, "\n")
+    cat("Specific GDB files merged successfully and saved to ", output_path, "\n")
   } else {
     cat("No valid features found for merging.\n")
   }
 }
 
-# Example usage
 # Example usage
 source_directory <- "Z:/workspace/rukun.khalaf/Wales/Data/liv-topo-wales-2012/topo-2012"
 
