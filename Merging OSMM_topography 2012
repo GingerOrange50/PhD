@@ -1,0 +1,57 @@
+# Load necessary libraries
+library(sf)
+library(rgdal)
+library(terra)
+
+# Function to merge specific GDB files
+merge_specific_gdb_files <- function(source_dir, output_dir, output_file) {
+  # List specific GDB files
+  gdb_files <- c("SH_liv-topo_extract.gdb","SJ_liv-topo_extract.gdb", "SM_liv-topo_extract.gdb", "SN_liv-topo_extract.gdb", "SO_liv-topo_extract.gdb", "SR_liv-topo_extract.gdb", "SS_liv-topo_extract.gdb","ST_liv-topo_extract.gdb" )
+  gdb_files <- file.path(source_dir, gdb_files)
+  
+  # Initialize an empty sf object to store the merged data
+  merged_sf <- NULL
+  
+  # Loop through each specific GDB file
+  for (gdb_file in gdb_files) {
+    # List feature classes in the GDB
+    feature_classes <- ogrListLayers(gdb_file)
+    
+    # Loop through each feature class and read it into an sf object
+    for (feature_class in feature_classes) {
+      feature_path <- file.path(gdb_file, feature_class)
+      feature_sf <- st_read(dsn = feature_path)
+      
+      # Check if merged_sf is NULL (first iteration) or if feature_sf has a geometry column
+      if (is.null(merged_sf) || !is.null(st_geometry(feature_sf))) {
+        merged_sf <- rbind(merged_sf, feature_sf)
+      }
+    }
+  }
+  
+  # Check if merged_sf is not NULL before writing to shapefile
+  if (!is.null(merged_sf)) {
+    # Write the merged sf object to a shapefile
+    output_path <- file.path(output_dir, paste0(output_file, ".shp"))
+    st_write(merged_sf, dsn = output_path)
+    
+    cat("Specific GDB files merged successfully and saved to", output_path, "\n")
+  } else {
+    cat("No valid features found for merging.\n")
+  }
+}
+
+# Example usage
+# Example usage
+source_directory <- "Z:/workspace/rukun.khalaf/Wales/Data/liv-topo-wales-2012/topo-2012"
+
+##### ERROR MESSAGE
+##### Error: Cannot open "Z:/workspace/rukun.khalaf/Wales/Data/liv-topo-wales-2012/topo-2012/SH_liv-topo_extract.gdb/topographicarea"; The file doesn't seem to exist.
+##### In addition: Warning message:
+##### OGR support is provided by the sf and terra packages among others 
+
+
+output_shapefile <- "M:/1st year/Data directory (exposure)/Blue typology (SAIL)"
+output_shapefile <- "merged_topo12"
+
+merge_specific_gdb_files(source_directory, output_directory, output_shapefile)
