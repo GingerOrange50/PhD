@@ -40,12 +40,6 @@ merge_specific_gdb_files <- function(source_dir, output_dir, output_file) {
 # Example usage
 source_directory <- "Z:/workspace/rukun.khalaf/Wales/Data/liv-topo-wales-2012/topo-2012"
 
-##### ERROR MESSAGE
-##### Error: Cannot open "Z:/workspace/rukun.khalaf/Wales/Data/liv-topo-wales-2012/topo-2012/SH_liv-topo_extract.gdb/topographicarea"; The file doesn't seem to exist.
-##### In addition: Warning message:
-##### OGR support is provided by the sf and terra packages among others 
-
-
 output_shapefile <- "M:/1st year/Data directory (exposure)/Blue typology (SAIL)"
 output_shapefile <- "merged_topo12"
 
