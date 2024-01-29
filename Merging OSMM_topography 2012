@@ -44,3 +44,47 @@ output_shapefile <- "M:/1st year/Data directory (exposure)/Blue typology (SAIL)"
 output_shapefile <- "merged_topo12"
 
 merge_specific_gdb_files(source_directory, output_directory, output_shapefile)
+
+
+
+
+#### 29/01/24. Adapted with minor tweaks from Roberto's GroundsWell GitHub code. 
+
+bundle_tiles<- function(source_dir, output_dir) {
+  # List GDB files
+  tile_paths_gdb <- source_dir |>
+    list.files(pattern = "gdb$", full.names = TRUE)
+  
+  # Extract tile number (to find duplicates)
+  tiles_gdb_tb <- tibble::tibble(
+    path = tile_paths_gdb
+  ) |>
+    dplyr::mutate(
+      tile_id = basename(tile_paths_gdb) |>
+        stringr::str_extract("^[0-9A-Za-z]+\\_") |>
+        stringr::str_remove("\\_"),
+      .before = 1
+    ) |>
+    dplyr::distinct(tile_id, .keep_all = TRUE)
+  
+  # Read each feature class from the GDB files
+  tiles_gdb_list <- tiles_gdb_tb$path |>
+    purrr::map(sf::read_sf) |>
+    purrr::list_c() |>
+    (\(.) sf::st_set_geometry(., .$geometry))()
+  
+  # Save the bundled GDB file in the specified output directory
+  output_path <- file.path(output_dir, "bundled_gdb.shp")
+  sf::st_write(tiles_gdb_list, dsn = output_path)
+  
+  
+  tiles_gdb_list
+  
+}
+
+output_directory <- "M:/1st year/Data directory (exposure)/Blue typology (SAIL)"
+bundled_topo12_gdb <- bundle_tiles("Z:/workspace/rukun.khalaf/Wales/Data/liv-topo-wales-2012/topo-2012", output_directory)
+
+
+
+
