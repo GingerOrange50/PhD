@@ -49,6 +49,7 @@ merge_specific_gdb_files(source_directory, output_directory, output_shapefile)
 
 
 #### 29/01/24. Adapted with minor tweaks from Roberto's GroundsWell GitHub code. 
+##### 30/01/24. Changed code to make $geometry to $polygon. 
 
 bundle_tiles<- function(source_dir, output_dir) {
   # List GDB files
@@ -71,7 +72,7 @@ bundle_tiles<- function(source_dir, output_dir) {
   tiles_gdb_list <- tiles_gdb_tb$path |>
     purrr::map(sf::read_sf) |>
     purrr::list_c() |>
-    (\(.) sf::st_set_geometry(., .$geometry))()
+    (\(.) sf::st_set_geometry(., .$polygon))()
   
   # Save the bundled GDB file in the specified output directory
   output_path <- file.path(output_dir, "bundled_gdb.shp")
@@ -84,7 +85,9 @@ bundle_tiles<- function(source_dir, output_dir) {
 
 output_directory <- "M:/1st year/Data directory (exposure)/Blue typology (SAIL)"
 bundled_topo12_gdb <- bundle_tiles("Z:/workspace/rukun.khalaf/Wales/Data/liv-topo-wales-2012/topo-2012", output_directory)
-
+bundled_topo12_gdb |>
+  sf::st_make_valid() |>
+  sf::st_write(file.path(output_dir, "bundled_gdb.shp"))
 
 
 
