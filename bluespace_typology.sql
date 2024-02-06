@@ -17,16 +17,37 @@ ALTER TABLE bgs.wales_mm_abp_bluespace
 ALTER TABLE bgs.wales_mm_abp_bluespace
     ADD COLUMN river_status character(254);
 
-UPDATE bgs.wales_mm_abp_bluespace dst
-    SET e_objectid = objectid, river_name = wcrs_name, tier_3 = 'river'
-FROM lle.main_rivers src
-WHERE st_intersects(src.geom, dst.geom);
+---- (06/02/24: Add 2 new columns cause missing from code but needed immediately after this. Called column geom_blue due to ambiguity)
+
+ALTER TABLE bgs.wales_mm_abp_bluespace
+	ADD COLUMN geom_blue geometry;
+	
+ALTER TABLE bgs.wales_mm_abp_bluespace
+	ADD COLUMN tier_3 character(20);
+
+-----(06/02/2024: removed dst in code cause not found in layers and not sure what it is. st_intersects is a function that hasn't been explained so removing from code).
+-----(06/02/2024: completely removed WHERE st_intersects line.)
+
+--UPDATE bgs.wales_mm_abp_bluespace dst
+--    SET e_objectid = objectid, river_name = wcrs_name, tier_3 = 'river'
+--FROM lle.main_rivers src
+--WHERE st_intersects(src.geom, dst.geom);
+
+------ (06/02/2024: new code I made from OG (above). Have to use INSERT INTO cause wales_mm_abp_bluespace is an empty TABLE.)
+INSERT INTO bgs.wales_mm_abp_bluespace (e_objectid, river_name, geom_blue, tier_3)
+    SELECT objectid, wcrs_name, geom, 'river' AS tier_3
+FROM lle.main_rivers src;
 
 
-UPDATE bgs.wales_mm_abp_bluespace dst
-    SET f_objectid = "OBJECTID", river_name = "WB_NAME", tier_3 = 'river', river_status = "OverallStatus"
-FROM lle.river_waterbodies src
-WHERE st_intersects(src.geom, dst.geom);
+--UPDATE bgs.wales_mm_abp_bluespace dst
+--    SET f_objectid = "OBJECTID", river_name = "WB_NAME", tier_3 = 'river', river_status = "OverallStatus"
+--FROM lle.river_waterbodies src
+--WHERE st_intersects(src.geom, dst.geom);
+
+---- (06/02/2024: new code from OG (above). No column called WB_NAME so changed to name.)
+INSERT INTO bgs.wales_mm_abp_bluespace (f_objectid, river_name, geom_blue, river_status, tier_3)
+    SELECT OBJECTID, name, geom, overallsta, 'river' AS tier_3
+FROM lle.river_waterbodies src;
 
 --TEST
 SELECT * FROM bgs.wales_mm_abp_bluespace dst
@@ -71,6 +92,7 @@ CREATE VIEW bgs.canal AS SELECT * from bgs.wales_mm_abp_bluespace WHERE tier_3 =
 ALTER TABLE bgs.wales_mm_abp_bluespace ALTER COLUMN versiondate
 
 
+--- SKIP for now. Need to merge greenspace_mm_wales to create greenspace_no_private_gardens
 --Transport corridors
 CREATE TABLE bgs.amenity_transport AS SELECT * FROM os.greenspace_no_private_gardens
 WHERE prifunc = 'Amenity - Transport' AND secfunc IS NULL
