@@ -126,8 +126,24 @@ WHERE "theme" IN ( 'Land,Structures,Water' , 'Land,Water' , 'Roads Tracks And Pa
 
 ---- (07/02/2024: Entered this new code to create greenspace_no_private_gardens)
 
-CREATE TABLE os.greenspace_no_private_gardens AS SELECT *, id as greenspace_site_id FROM bgs.os_greenspace_mm_wales_2018_Apr
+CREATE TABLE os.greenspace_no_private_gardens AS SELECT * 
+FROM bgs."os_greenspace_mm_wales_2018_Apr"
 WHERE prifunc NOT IN ('Private Garden');
+
+ALTER TABLE os.greenspace_no_private_gardens
+	ADD COLUMN id_no_private_gardens integer;
+
+UPDATE os.greenspace_no_private_gardens 
+	SET id_no_private_gardens = "id_GS_2018_Apr"
+FROM bgs."os_greenspace_mm_wales_2018_Apr";
+
+
+--- (07/02/2024: there is no greenspace_site_id column, so choose id column cause toid column is only specific to OS datasets).
+--- (07/02/2024: then change column id cause ambigious to id_GS_2018_Apr)
+--- (07/02/2024: Have to change id column in greenspace_no_private_gardens to id_no_private_gardens cause id too ambiguos)
+
+
+
 
 
 --Transport corridors
