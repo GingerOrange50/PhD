@@ -49,18 +49,34 @@ INSERT INTO bgs.wales_mm_abp_bluespace (f_objectid, river_name, geom_blue, river
     SELECT OBJECTID, name, geom, overallsta, 'river' AS tier_3
 FROM lle.river_waterbodies src;
 
+----- (07/02/2024: theme and descriptivegroup only found in topo datasets. So replacing wales_mm_abp_bluespace with topographicarea. )
+----- (07/02/2024: because when creating wales_mm_abp_bluespace with LLE data, there is no field to join with topographicarea. )
+----- (07/02/2024: So wales_mm_abp_bluespace can't be created from both LLE and topo cause I don't know what field to link it with.)
+
 
 --TEST
-SELECT * FROM bgs.wales_mm_abp_bluespace dst
-WHERE tier_3 = 'river' AND
-      "theme" IN ( '{Land,Structures,Water}' , '{Land,Water}' , '{Roads Tracks And Paths,Water}' ,
-                   '{Structures,Water}' , '{Water}') AND descriptivegroup = '{Inland Water}';
+--SELECT * FROM bgs.wales_mm_abp_bluespace dst
+--WHERE tier_3 = 'river' AND
+--      "theme" IN ( '{Land,Structures,Water}' , '{Land,Water}' , '{Roads Tracks And Paths,Water}' ,
+--                   '{Structures,Water}' , '{Water}') AND descriptivegroup = '{Inland Water}';
 
 --Create a final table
-CREATE VIEW bgs.rivers AS SELECT * FROM bgs.wales_mm_abp_bluespace
-WHERE tier_3 = 'river' AND
-      "theme" IN ( '{Land,Structures,Water}' , '{Land,Water}' , '{Roads Tracks And Paths,Water}' ,
-                   '{Structures,Water}' , '{Water}') AND descriptivegroup = '{Inland Water}';
+--CREATE VIEW bgs.rivers AS SELECT * FROM bgs.wales_mm_abp_bluespace
+--WHERE tier_3 = 'river' AND
+--      "theme" IN ( '{Land,Structures,Water}' , '{Land,Water}' , '{Roads Tracks And Paths,Water}' ,
+--                  '{Structures,Water}' , '{Water}') AND descriptivegroup = '{Inland Water}';
+
+
+---(07/02/2024: created bgs.rivers with topo instead of wales_mm_sbp_bluespace)
+
+CREATE VIEW bgs.rivers AS SELECT *, 'rivers' AS tier_3
+FROM osmm_topo.topographicarea
+WHERE "theme" IN ( 'Land,Structures,Water' , 'Land,Water' , 'Roads Tracks And Paths,Water' ,
+                   'Structures,Water' , 'Water') AND descriptivegroup = 'Inland Water';
+
+
+
+
 
 --Canal
 ALTER TABLE bgs.wales_mm_abp_bluespace
