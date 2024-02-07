@@ -1,0 +1,36 @@
+
+bundle_tiles <- function(source_dir, output_dir) {
+  # list shapefiles for each tile
+  tile_paths_shp <- source_dir |>
+    list.files(pattern = "shp$", recursive = TRUE, full.names = TRUE)
+  
+  # extract tile number (to find duplicates)
+  tiles_shp_tb <- tibble::tibble(
+    path = tile_paths_shp
+  ) |>
+    dplyr::mutate(
+      tile_id = basename(tile_paths_shp) |>
+        stringr::str_extract("^[0-9A-Za-z]+\\_") |>
+        stringr::str_remove("\\_"),
+      .before = 1
+    ) |>
+    dplyr::distinct(tile_id, .keep_all = TRUE)
+  
+  tiles_shp_list <- tiles_shp_tb$path |>
+    purrr::map(sf::read_sf) |>
+    purrr::list_c() |>
+    (\(.) sf::st_set_geometry(., .$geometry))()
+
+  
+  tiles_shp_list
+}
+
+
+source_dir<- "Z:/OS/GS/2018/04"
+output_dir<- "Z:/workspace/rukun.khalaf/Wales/Data"
+
+GS_2018_Apr <- bundle_tiles(source_dir, output_dir)
+GS_2018_Apr |>
+  # readr::write_rds(file.path(output_directory, "GS_2018_04.shp"))
+  sf::st_make_valid() |>
+  sf::st_write(file.path(output_dir, "GS_2018_04.shp"))
