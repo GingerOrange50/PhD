@@ -75,9 +75,6 @@ WHERE "theme" IN ( 'Land,Structures,Water' , 'Land,Water' , 'Roads Tracks And Pa
                    'Structures,Water' , 'Water') AND descriptivegroup = 'Inland Water';
 
 
-
-
-
 --Canal
 ALTER TABLE bgs.wales_mm_abp_bluespace
     ADD COLUMN g_objectid integer;
@@ -91,23 +88,41 @@ VACUUM ANALYZE lle.canals;
 CLUSTER  lle.canals using sidx_canals;
 
 
-UPDATE bgs.wales_mm_abp_bluespace dst
-    SET e_objectid = objectid, canal_name = wb_name, tier_3 = 'canal'
-FROM lle.canals src
-WHERE st_intersects(src.geom, dst.geom);
+--UPDATE bgs.wales_mm_abp_bluespace dst
+--    SET e_objectid = objectid, canal_name = wb_name, tier_3 = 'canal'
+--FROM lle.canals src
+--WHERE st_intersects(src.geom, dst.geom);
+
+--- (07/02/2024: add canals tier_3. Only 9 canals in lle.canals.)
+
+INSERT INTO bgs.wales_mm_abp_bluespace (e_objectid, canal_name, geom_blue, tier_3)
+    SELECT objectid, wb_name, geom, 'canal' AS tier_3
+FROM lle.canals src;
+
 
 --TEST
-SELECT * FROM bgs.wales_mm_abp_bluespace dst
-WHERE tier_3 = 'canal' AND
-      "theme" IN ( '{Land,Structures,Water}' , '{Land,Water}' , '{Roads Tracks And Paths,Water}' ,
-                   '{Structures,Water}' , '{Water}');
+--SELECT * FROM bgs.wales_mm_abp_bluespace dst
+--WHERE tier_3 = 'canal' AND
+--      "theme" IN ( '{Land,Structures,Water}' , '{Land,Water}' , '{Roads Tracks And Paths,Water}' ,
+--                   '{Structures,Water}' , '{Water}');
 
-CREATE VIEW bgs.canal AS SELECT * from bgs.wales_mm_abp_bluespace WHERE tier_3 = 'canal' AND
-      "theme" IN ( '{Land,Structures,Water}' , '{Land,Water}' , '{Roads Tracks And Paths,Water}' ,
-                   '{Structures,Water}' , '{Water}');
+--CREATE VIEW bgs.canal AS SELECT * from bgs.wales_mm_abp_bluespac WHERE tier_3 = 'canal' AND
+--      "theme" IN ( '{Land,Structures,Water}' , '{Land,Water}' , '{Roads Tracks And Paths,Water}' ,
+--                   '{Structures,Water}' , '{Water}');
 
-ALTER TABLE bgs.wales_mm_abp_bluespace ALTER COLUMN versiondate
+--- (07/02/2024: swapped wales_mm_abp_bluespace with topo because wales_mm_abp_bluespace has joining issue with topo layer so can't join.)
+--- (07/02/2024: topo layer has theme field.)
 
+CREATE VIEW bgs.canal AS SELECT *, 'canal' AS tier_3
+FROM osmm_topo.topographicarea
+WHERE "theme" IN ( 'Land,Structures,Water' , 'Land,Water' , 'Roads Tracks And Paths,Water' ,
+                   'Structures,Water' , 'Water');
+
+
+--ALTER TABLE bgs.wales_mm_abp_bluespace ALTER COLUMN versiondate
+
+--- (07/02/2024: wales_mm_abp_bluespace does not have colum versiondate. That is only found in topo layer which has not been joining in wales_mm_abp_bluespace )
+--- (07/02/2024: this is cause not clear what the joining field is for wales_mm_abp_bluespace (created from lle) and topo layer)
 
 ---- (07/02/2024: Entered this new code to create greenspace_no_private_gardens)
 
