@@ -49,6 +49,7 @@ INSERT INTO bgs.wales_mm_abp_bluespace (f_objectid, river_name, geom_blue, river
     SELECT OBJECTID, name, geom, overallsta, 'river' AS tier_3
 FROM lle.river_waterbodies src;
 
+
 --TEST
 SELECT * FROM bgs.wales_mm_abp_bluespace dst
 WHERE tier_3 = 'river' AND
@@ -92,7 +93,12 @@ CREATE VIEW bgs.canal AS SELECT * from bgs.wales_mm_abp_bluespace WHERE tier_3 =
 ALTER TABLE bgs.wales_mm_abp_bluespace ALTER COLUMN versiondate
 
 
---- SKIP for now. Need to merge greenspace_mm_wales to create greenspace_no_private_gardens
+---- (07/02/2024: Entered this new code to create greenspace_no_private_gardens)
+
+CREATE TABLE os.greenspace_no_private_gardens AS SELECT *, id as greenspace_site_id FROM bgs.os_greenspace_mm_wales_2018_Apr
+WHERE prifunc NOT IN ('Private Garden');
+
+
 --Transport corridors
 CREATE TABLE bgs.amenity_transport AS SELECT * FROM os.greenspace_no_private_gardens
 WHERE prifunc = 'Amenity - Transport' AND secfunc IS NULL
