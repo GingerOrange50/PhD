@@ -173,19 +173,48 @@ UPDATE bgs.amenity_transport SET reasonforchange = topographicarea.reasonforchan
 
 --Cliffs
 CREATE TABLE bgs.mm_cliffs AS
-SELECT * FROM osmm_topo.topographicarea WHERE descriptiveterm = '{Cliff}';
+SELECT * FROM osmm_topo.topographicarea WHERE descriptiveterm = 'Cliff';
 
-CREATE INDEX cliff_indx ON bgs.mm_cliffs USING GIST (wkb_geometry);
+---- (12/02/2024: took off the weird curly brakects)
+
+CREATE INDEX cliff_indx ON bgs.mm_cliffs USING GIST (geom);
+
+----- (12/02/2024: changed the GIST geometry variable from wkb_geometry cause the geometry column in bgs.mm_cliffs is named geom)
+
 VACUUM ANALYZE bgs.mm_cliffs;
 CLUSTER cliff_indx ON bgs.mm_cliffs;
 VACUUM ANALYZE bgs.mm_cliffs;
 
-UPDATE bgs.wales_mm_abp_bluespace as a
-  SET tier_3 = 'cliff'
-    FROM bgs.mm_cliffs
-        WHERE st_intersects(geom,wkb_geometry);
+--UPDATE bgs.wales_mm_abp_bluespace as a
+--  SET tier_3 = 'cliff'
+--    FROM bgs.mm_cliffs
+--        WHERE st_intersects(geom,wkb_geometry);
 
-CREATE VIEW bgs.cliff AS SELECT geom, versiondate, changedate, reasonforchange, tier_3 FROM bgs.wales_mm_abp_bluespace WHERE tier_3 = 'cliff'
+UPDATE bgs.wales_mm_abp_bluespace AS a
+SET tier_3 = 'cliff'
+FROM bgs.mm_cliffs AS c
+WHERE ST_Intersects(ST_SetSRID(a.geom_blue, 27700), c.geom);
+
+--- (12/02/2024: changed the code because need to set the same SRID for both tables before can do this. )
+
+
+--CREATE VIEW bgs.cliff AS SELECT geom, versiondate, changedate, reasonforchange, tier_3 FROM bgs.wales_mm_abp_bluespace WHERE tier_3 = 'cliff';
+
+CREATE VIEW bgs.cliff AS
+SELECT
+    geom,
+    versiondate,
+    changedate,
+    reasonforchange,
+    'cliff' AS tier_3
+FROM
+    osmm_topo.topographicarea
+WHERE
+    descriptiveterm = 'Cliff';
+
+--- (12/02/2024: changed the source of VIEW bgs.cliff from topographicarea cause thats the elements from bgs.wales_mm_abp_bluespace they want.)
+--- (12/02/2024: but bgs.wales_mm_abp_bluespace doesn't contain any info from topographicarea cause we couldn't match it as the joining field wasn't clear.)
+
 --Beach
 UPDATE bgs.wales_mm_abp_bluespace
 SET tier_3 = 'beach'
