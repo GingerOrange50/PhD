@@ -131,24 +131,25 @@ FROM bgs."os_greenspace_mm_wales_2018_Apr"
 WHERE prifunc NOT IN ('Private Garden');
 
 ALTER TABLE os.greenspace_no_private_gardens
-	ADD COLUMN id_no_private_gardens integer;
+RENAME COLUMN "id_GS_2018_Apr" TO id_no_private_gardens;
 
-UPDATE os.greenspace_no_private_gardens 
-	SET id_no_private_gardens = "id_GS_2018_Apr"
-FROM bgs."os_greenspace_mm_wales_2018_Apr";
+--ALTER TABLE os.greenspace_no_private_gardens
+--	ADD COLUMN id_no_private_gardens integer;
+
+--UPDATE os.greenspace_no_private_gardens 
+--	SET id_no_private_gardens = "id_GS_2018_Apr"
+--FROM bgs."os_greenspace_mm_wales_2018_Apr";
 
 
 --- (07/02/2024: there is no greenspace_site_id column, so choose id column cause toid column is only specific to OS datasets).
 --- (07/02/2024: then change column id cause ambigious to id_GS_2018_Apr)
 --- (07/02/2024: Have to change id column in greenspace_no_private_gardens to id_no_private_gardens cause id too ambiguos)
-
-
-
+--- (12/02/2024: Altered name of column in newly created os.greenspace_no_private_gardens to id_no_private_gardens)
 
 
 --Transport corridors
 CREATE TABLE bgs.amenity_transport AS SELECT * FROM os.greenspace_no_private_gardens
-WHERE prifunc = 'Amenity - Transport' AND secfunc IS NULL
+WHERE prifunc = 'Amenity - Transport' AND secfunc IS NULL;
 
 ALTER TABLE bgs.amenity_transport ADD COLUMN tier_3 character(20);
 UPDATE bgs.amenity_transport SET tier_3 = 'amenity_transport'
