@@ -161,12 +161,14 @@ ALTER TABLE bgs.amenity_transport ADD COLUMN versiondate varchar;
 
 
 
+
 UPDATE bgs.amenity_transport SET versiondate = topographicarea.versiondate FROM osmm_topo.topographicarea WHERE amenity_transport.toid = topographicarea.fid;
 
 ALTER TABLE bgs.amenity_transport ADD COLUMN changedate character varying[];
 UPDATE bgs.amenity_transport SET changedate = topographicarea.changedate FROM osmm_topo.topographicarea WHERE amenity_transport.toid = topographicarea.fid
 ALTER TABLE bgs.amenity_transport ADD COLUMN reasonforchange character varying[];
 UPDATE bgs.amenity_transport SET reasonforchange = topographicarea.reasonforchange FROM osmm_topo.topographicarea WHERE amenity_transport.toid = topographicarea.fid
+
 
 
 
@@ -215,17 +217,30 @@ WHERE
 --- (12/02/2024: changed the source of VIEW bgs.cliff from topographicarea cause thats the elements from bgs.wales_mm_abp_bluespace they want.)
 --- (12/02/2024: but bgs.wales_mm_abp_bluespace doesn't contain any info from topographicarea cause we couldn't match it as the joining field wasn't clear.)
 
---Beach
-UPDATE bgs.wales_mm_abp_bluespace
-SET tier_3 = 'beach'
-WHERE descriptiveterm IN ('{Sand}',  '{Boulders,Sand}'  ,'{Boulders,Foreshore,Sand}', '{Boulders,Foreshore,Shingle}' ,
-    '{Boulders,Foreshore}', '{Foreshore}' , '{Foreshore,Mud}' , '{Foreshore,Mud,Rock}' , '{Foreshore,Mud,Sand}' ,
-    '{Foreshore,Mud,Sand,Shingle}' , '{Foreshore,Mud,Shingle}' , '{Foreshore,Rock}' , '{Foreshore,Rock (Scattered)}' ,
-    '{Foreshore,Rock (Scattered)}','{Foreshore,Rock,Sand}', '{Foreshore,Sand}', '{Foreshore,Sand,Shingle}' ,
-    '{Foreshore,Shingle}' , '{Foreshore,Slipway}' , '{Foreshore,Sloping Masonry}' , '{Foreshore,Step}', '{Mud,Sand}' ,
-    '{Sand,Shingle}' , '{Shingle}');
 
-CREATE VIEW bgs.beach AS SELECT * FROM bgs.wales_mm_abp_bluespace Where tier_3 = 'beach';
+--Beach
+--UPDATE bgs.wales_mm_abp_bluespace
+--SET tier_3 = 'beach'
+--WHERE descriptiveterm IN ('{Sand}',  '{Boulders,Sand}'  ,'{Boulders,Foreshore,Sand}', '{Boulders,Foreshore,Shingle}' ,
+--    '{Boulders,Foreshore}', '{Foreshore}' , '{Foreshore,Mud}' , '{Foreshore,Mud,Rock}' , '{Foreshore,Mud,Sand}' ,
+--    '{Foreshore,Mud,Sand,Shingle}' , '{Foreshore,Mud,Shingle}' , '{Foreshore,Rock}' , '{Foreshore,Rock (Scattered)}' ,
+--    '{Foreshore,Rock (Scattered)}','{Foreshore,Rock,Sand}', '{Foreshore,Sand}', '{Foreshore,Sand,Shingle}' ,
+--    '{Foreshore,Shingle}' , '{Foreshore,Slipway}' , '{Foreshore,Sloping Masonry}' , '{Foreshore,Step}', '{Mud,Sand}' ,
+--    '{Sand,Shingle}' , '{Shingle}');
+
+--CREATE VIEW bgs.beach AS SELECT * FROM bgs.wales_mm_abp_bluespace Where tier_3 = 'beach';
+
+CREATE VIEW bgs.beach AS SELECT *, 'beach' AS tier_3
+FROM osmm_topo.topographicarea
+WHERE descriptiveterm IN ('Sand',  'Boulders,Sand'  ,'Boulders,Foreshore,Sand', 'Boulders,Foreshore,Shingle' ,
+    'Boulders,Foreshore', 'Foreshore' , 'Foreshore,Mud' , 'Foreshore,Mud,Rock' , 'Foreshore,Mud,Sand' ,
+    'Foreshore,Mud,Sand,Shingle' , 'Foreshore,Mud,Shingle' , 'Foreshore,Rock' , 'Foreshore,Rock (Scattered)' ,
+    'Foreshore,Rock (Scattered)','Foreshore,Rock,Sand', 'Foreshore,Sand', 'Foreshore,Sand,Shingle' ,
+    'Foreshore,Shingle' , 'Foreshore,Slipway' , 'Foreshore,Sloping Masonry' , 'Foreshore,Step', 'Mud,Sand' ,
+    'Sand,Shingle' , 'Shingle');
+
+--- (12/02/2024: changed the source of bgs.beach from bgs.wales_mm_abp_bluespace to topographicarea cause descriptiveterm only in topographicarea.)
+--- (12/02/2024: cause bgs.wales_mm_abp_bluespace never joined with topographicarea.)
 
 
 --Marina
@@ -235,10 +250,31 @@ CREATE VIEW bgs.beach AS SELECT * FROM bgs.wales_mm_abp_bluespace Where tier_3 =
 --See harbour
 
 --Estuary
-UPDATE bgs.wales_mm_abp_bluespace dst
-    SET tier_3 = 'estuary'
+--UPDATE bgs.wales_mm_abp_bluespace dst
+--    SET tier_3 = 'estuary'
+--FROM bgs.os_open_rivers src
+--WHERE form = 'tidalRiver' AND st_intersects(src.geom, dst.geom);
+
+INSERT INTO bgs.wales_mm_abp_bluespace (tier_3)
+    SELECT 'estuary' AS tier_3
 FROM bgs.os_open_rivers src
-WHERE form = 'tidalRiver' AND st_intersects(src.geom, dst.geom);
+WHERE form = 'tidalRiver';
+
+---------- (12/02/2024: CONTINUE FROM HERE. Not sure how to do st_intersects cause the SRID not same for both datasets.)
+
+--UPDATE bgs.wales_mm_abp_bluespace dst
+--    SET e_objectid = objectid, canal_name = wb_name, tier_3 = 'canal'
+--FROM lle.canals src
+--WHERE st_intersects(src.geom, dst.geom);
+
+--- (07/02/2024: add canals tier_3. Only 9 canals in lle.canals.)
+
+INSERT INTO bgs.wales_mm_abp_bluespace (e_objectid, canal_name, geom_blue, tier_3)
+    SELECT objectid, wb_name, geom, 'canal' AS tier_3
+FROM lle.canals src;
+
+
+
 
 CREATE VIEW bgs.estuary AS SELECT geom, versiondate, changedate, reasonforchange, tier_3 FROM bgs.wales_mm_abp_bluespace WHERE tier_3 = 'estuary'
 
