@@ -152,14 +152,24 @@ CREATE TABLE bgs.amenity_transport AS SELECT * FROM os.greenspace_no_private_gar
 WHERE prifunc = 'Amenity - Transport' AND secfunc IS NULL;
 
 ALTER TABLE bgs.amenity_transport ADD COLUMN tier_3 character(20);
+
 UPDATE bgs.amenity_transport SET tier_3 = 'amenity_transport'
 --Add in versiondate, changedate and reason for change cols from MM
 ALTER TABLE bgs.amenity_transport ADD COLUMN versiondate varchar;
-UPDATE bgs.amenity_transport SET versiondate = topographicarea.versiondate FROM osmm_topo.topographicarea WHERE amenity_transport.toid = topographicarea.fid
+
+------ (12/02/2024: Need to ask Roberto SO For now skip! amenity_transport table.)
+
+
+
+UPDATE bgs.amenity_transport SET versiondate = topographicarea.versiondate FROM osmm_topo.topographicarea WHERE amenity_transport.toid = topographicarea.fid;
+
 ALTER TABLE bgs.amenity_transport ADD COLUMN changedate character varying[];
 UPDATE bgs.amenity_transport SET changedate = topographicarea.changedate FROM osmm_topo.topographicarea WHERE amenity_transport.toid = topographicarea.fid
 ALTER TABLE bgs.amenity_transport ADD COLUMN reasonforchange character varying[];
 UPDATE bgs.amenity_transport SET reasonforchange = topographicarea.reasonforchange FROM osmm_topo.topographicarea WHERE amenity_transport.toid = topographicarea.fid
+
+
+
 
 --Cliffs
 CREATE TABLE bgs.mm_cliffs AS
