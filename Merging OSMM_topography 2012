@@ -51,11 +51,16 @@ merge_specific_gdb_files(source_directory, output_directory, output_shapefile)
 #### 29/01/24. Adapted with minor tweaks from Roberto's GroundsWell GitHub code. 
 ##### 30/01/24. Changed code to make $geometry to $polygon. 
 
-bundle_tiles<- function(source_dir, output_dir) {
+bundle_tiles <- function(source_dir,
+                         output_dir,
+                         prefix = "bundled_tiles_",
+                         mask = NULL,
+                         layer_id = 1,
+                         workers = 1) {
   # List GDB files
   tile_paths_gdb <- source_dir |>
     list.files(pattern = "gdb$", full.names = TRUE)
-  
+
   # Extract tile number (to find duplicates)
   tiles_gdb_tb <- tibble::tibble(
     path = tile_paths_gdb
@@ -67,27 +72,69 @@ bundle_tiles<- function(source_dir, output_dir) {
       .before = 1
     ) |>
     dplyr::distinct(tile_id, .keep_all = TRUE)
-  
+
   # Read each feature class from the GDB files
+  future::plan(future::multisession, workers = workers)
   tiles_gdb_list <- tiles_gdb_tb$path |>
-    purrr::map(sf::read_sf) |>
-    purrr::list_c() |>
+    furrr::future_map_dfr(function(.x) {
+        aux_layers <- sf::st_layers(.x)
+        aux_layers <- aux_layers$name
+        message("Reading: ", basename(.x), " - Layer: ", aux_layers[layer_id])
+        aux <- sf::read_sf(.x, layer = aux_layers[layer_id]) |>
+          sf::st_make_valid()
+        if (!is.null(mask))
+          return(sf::st_filter(aux, mask))
+        return(aux)
+      }
+    ) |>
     (\(.) sf::st_set_geometry(., .$polygon))()
-  
-  # Save the bundled GDB file in the specified output directory
-  output_path <- file.path(output_dir, "bundled_gdb.shp")
-  sf::st_write(tiles_gdb_list, dsn = output_path)
-  
-  
-  tiles_gdb_list
-  
+  future::plan(future::sequential)
+
+  # Save the bundled GDB file using the provided output prefix
+  ## save and Rds file as a backup
+  filename <-
+    file.path(output_dir,
+              paste0(prefix,
+                     ifelse(is.null(mask), "", "masked_"), "layer_", layer_id)
+             )
+  message("Saving output at: ", filename, ".rds and .gpkg")
+
+  readr::write_rds(tiles_gdb_list, paste0(output_prefix, ".rds"))
+  ## save GeoPackage file
+  tiles_gdb_list |>
+    dplyr::mutate(fid_ = fid, # could be rename to toid of something else
+                  fid = seq_along(fid)) |>
+    sf::st_write(dsn = paste0(output_prefix, ".gpkg"))
+  # delete backup Rds if GeoPackage was created
+  if (file.exists(paste0(output_prefix, ".gpkg"))) {
+    file.remove(paste0(output_prefix, ".rds"))
+  }
 }
 
 output_directory <- "M:/1st year/Data directory (exposure)/Blue typology (SAIL)"
-bundled_topo12_gdb <- bundle_tiles("Z:/workspace/rukun.khalaf/Wales/Data/liv-topo-wales-2012/topo-2012", output_directory)
-bundled_topo12_gdb |>
-  sf::st_make_valid() |>
-  sf::st_write(file.path(output_dir, "bundled_gdb.shp"))
 
+# this is optional and if provided, uses this mask to filter the data.
+wales_mask <- "Z:/OS/masks/wales_mask_bfc.geojson" |>
+  sf::st_read() |>
+  sf::st_transform(crs = 27700)
 
+# 2012
+## Topographic layer
+bundle_tiles(
+  source_dir = "Z:/workspace/rukun.khalaf/Wales/Data/liv-topo-wales-2012/topo-2012",                                      
+  output_dir = output_directory, 
+  prefix = "os_topo_2012_topographic_",
+  mask = wales_mask,
+  layer_id = 1, # use sf::st_layers to find out the layer ID
+  workers = 5
+)
 
+## Cartographic layer
+bundle_tiles(
+  source_dir = "Z:/workspace/rukun.khalaf/Wales/Data/liv-topo-wales-2012/topo-2012",                                      
+  output_dir = output_directory, 
+  prefix = "os_topo_2012_cartographictext_",
+  mask = wales_mask,
+  layer_id = 5, # use sf::st_layers to find out the layer ID
+  workers = 5
+)
