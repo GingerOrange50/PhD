@@ -262,21 +262,18 @@ WHERE form = 'tidalRiver';
 
 ---------- (12/02/2024: CONTINUE FROM HERE. Not sure how to do st_intersects cause the SRID not same for both datasets.)
 
---UPDATE bgs.wales_mm_abp_bluespace dst
---    SET e_objectid = objectid, canal_name = wb_name, tier_3 = 'canal'
---FROM lle.canals src
---WHERE st_intersects(src.geom, dst.geom);
+--CREATE VIEW bgs.estuary AS SELECT geom, versiondate, changedate, reasonforchange, tier_3 FROM bgs.wales_mm_abp_bluespace WHERE tier_3 = 'estuary';
 
---- (07/02/2024: add canals tier_3. Only 9 canals in lle.canals.)
-
-INSERT INTO bgs.wales_mm_abp_bluespace (e_objectid, canal_name, geom_blue, tier_3)
-    SELECT objectid, wb_name, geom, 'canal' AS tier_3
-FROM lle.canals src;
+CREATE VIEW bgs.estuary AS SELECT geom, versiondate, changedate, reasonforchange FROM osmm_topo.topographicarea;
 
 
+------ (14/02/2024: change the source from wales_mm_abp_bluespace to topographica cause those variables are there.)
+------ (14/02/2024: cause could not join wales_mm_abp_bluespace with topo cause don't know linking field.)
+----- (14/02/2024: not sure how to make bgs.estuary cause the descriptiveterm in topo does not have estuary entry.)
+----- (14/02/2024: can't find any estuary synonym in topo)
+----- (14/02/2024: Skipped making bgs.estuary for now. To ask Roberto!)
 
 
-CREATE VIEW bgs.estuary AS SELECT geom, versiondate, changedate, reasonforchange, tier_3 FROM bgs.wales_mm_abp_bluespace WHERE tier_3 = 'estuary'
 
 --Harbour
 CREATE TABLE bgs.harbour AS SELECT * FROM osmm_topo.cartographictext WHERE
